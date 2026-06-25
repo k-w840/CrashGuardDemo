@@ -8,13 +8,13 @@ extern "C" {
 #endif
 
 /**
- * @brief 抓取当前调用栈
- * 
- * @param buffer 存放调用栈帧地址指针的数组
- * @param max_frames 最大抓取帧数
+ * 回朔调用栈
+ *
+ * @param buffer 调用栈帧地址的指针数组
+ * @param maxFrames 最大抓取帧数
  * @return int 实际抓取的帧数
  */
-int zwMobileGuardCaptureBacktrace(void** buffer, int max_frames);
+int zwMobileGuardCaptureBacktrace(void** buffer, int maxFrames);
 
 /**
  * @brief 格式化堆栈为可读的文本，若支持，会解析出 Mach-O 模块名与偏移量

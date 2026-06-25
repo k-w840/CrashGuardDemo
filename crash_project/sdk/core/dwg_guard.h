@@ -10,10 +10,16 @@ extern "C" {
 /**
  * @brief 初始化 ZWMobileGuard SDK
  *
- * @param log_dir 崩溃日志落盘的绝对路径
+ * @param logDir 崩溃日志落盘的绝对路径
  * @return int 0表示成功，非0表示失败
  */
-int zwMobileGuardInit(const char* log_dir);
+int zwMobileGuardInit(const char* logDir);
+
+/**
+ *  注册当前线程的备用信号栈以处理拦截栈溢出崩溃
+ *  默认会为主线程/当前线程注册。对于多线程项目，可在子线程入口函数中调用。
+ */
+void zwMobileGuardRegisterThreadSignalStack(void);
 
 
 /// 设置活跃图纸信息
@@ -55,20 +61,13 @@ void zwMobileGuardAddBreadcrumb(const char* category, const char* action, const 
 char* zwMobileGuardDemangle(const char* mangled_name);
 
 /**
- * @brief 手动触发模拟崩溃写入（用于测试落盘和回溯功能）
+ * 模拟崩溃写入测试
  *
- * @param message 崩溃附加文本信息
+ * @param message 自定义崩溃信息(异常原因)
  */
 void zwMobileGuardSimulateCrashDump(const char* message);
 
-/**
- * @brief 手动记录 Objective-C 等上层捕获到的未捕获异常
- */
-
-
-
-
-/// 记录OC异常
+/// 记录OC异常到本地
 /// @param name 异常名称
 /// @param reason 异常原因
 /// @param frames 调用栈帧
@@ -76,10 +75,8 @@ void zwMobileGuardSimulateCrashDump(const char* message);
 void zwMobileGuardRecordObjCCrash(const char* name, const char* reason, void** frames, int count);
 
 /**
- * @brief 手动记录 Java / Kotlin 等托管层未捕获异常
- *
- * Android 侧默认未捕获异常处理器可调用该接口，将 Java 异常类型、消息和格式化后的
- * 调用栈文本落盘，和 native/C++ 崩溃报告走同一套本地文件管理链路。
+ * 记录 Java/Kotlin 层未捕获异常
+ * Android 侧默认未捕获异常处理器可调用该接口
  *
  * @param language 语言来源，例如 "Java" 或 "Kotlin"
  * @param name 异常类名

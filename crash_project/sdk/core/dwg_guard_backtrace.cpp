@@ -17,11 +17,12 @@
 #ifdef __ANDROID__
 struct AndroidUnwindState {
     void** buffer;
-    int max_frames;
+    int maxFrames;
     int count;
 };
 
-static _Unwind_Reason_Code android_unwind_callback(struct _Unwind_Context* context, void* arg) {
+// 栈回朔调用函数
+static _Unwind_Reason_Code androidUnwindCallback(struct _Unwind_Context* context, void* arg) {
     AndroidUnwindState* state = (AndroidUnwindState*)arg;
     if (state->count >= state->max_frames) {
         return _URC_END_OF_STACK;
@@ -35,18 +36,19 @@ static _Unwind_Reason_Code android_unwind_callback(struct _Unwind_Context* conte
 }
 #endif
 
-extern "C" int zwMobileGuardCaptureBacktrace(void** buffer, int max_frames) {
-    if (max_frames <= 0 || buffer == NULL) {
+// 回朔调用栈
+extern "C" int zwMobileGuardCaptureBacktrace(void** buffer, int maxFrames) {
+    if (maxFrames <= 0 || buffer == NULL) {
         return 0;
     }
     
 #ifdef __APPLE__
     // iOS 平台使用系统的 backtrace
-    return backtrace(buffer, max_frames);
+    return backtrace(buffer, maxFrames);
 #elif defined(__ANDROID__)
     // Android 平台使用 _Unwind_Backtrace 进行栈回溯
-    AndroidUnwindState state = { buffer, max_frames, 0 };
-    _Unwind_Backtrace(android_unwind_callback, &state);
+    AndroidUnwindState state = { buffer, maxFrames, 0 };
+    _Unwind_Backtrace(androidUnwindCallback, &state);
     return state.count;
 #else
     // 其它平台占位实现

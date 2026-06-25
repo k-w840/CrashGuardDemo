@@ -32,14 +32,11 @@ struct ThreadExceptionInfo {
 };
 
 // 使用 thread_local 保存每个线程的最新 throw 堆栈
-static thread_local ThreadExceptionInfo g_thread_exception = {
-    {0}, 0, {0}, false};
+static thread_local ThreadExceptionInfo g_thread_exception = {{0}, 0, {0}, false};
 
 // 外部声明，用于在 hook 中填充 TLS 栈
-extern "C" void zwMobileGuardRecordThrowState(void *thrown_exception,
-                                            std::type_info *tinfo) {
-    g_thread_exception.frames_count = zwMobileGuardCaptureBacktrace(
-                                                                  g_thread_exception.backtrace_buffer, MAX_STACK_FRAMES);
+extern "C" void zwMobileGuardRecordThrowState(void *thrown_exception, std::type_info *tinfo) {
+    g_thread_exception.frames_count = zwMobileGuardCaptureBacktrace(g_thread_exception.backtrace_buffer, MAX_STACK_FRAMES);
     g_thread_exception.has_exception = true;
     if (tinfo && tinfo->name()) {
         char *demangled = zwMobileGuardDemangle(tinfo->name());
@@ -56,12 +53,12 @@ extern "C" void zwMobileGuardRecordThrowState(void *thrown_exception,
     }
 }
 
-// --- 操作路径缓冲区 ---
+// 操作路径缓存数据
 struct BreadCrumb {
-    char time_str[32];  // 时间
-    char category[64];  // 事件类别
-    char action[128];   // 具体操作
-    char details[256];  // 详情
+    char time_str[32]; // 时间
+    char category[64]; // 事件类别
+    char action[128];  // 具体操作
+    char details[256]; // 详情
 };
 
 static struct {
@@ -71,7 +68,7 @@ static struct {
     pthread_mutex_t mutex;
 } g_breadCrumbs = {{{0}}, 0, 0, PTHREAD_MUTEX_INITIALIZER};
 
-// --- 活跃图纸元数据 ---
+// 图纸信息
 static struct {
     char name[128];
     char path[256];
@@ -82,27 +79,32 @@ static struct {
     char project_name[128];
     bool is_active;
     pthread_mutex_t mutex;
-} g_active_drawing = {
-    {0}, {0}, 0, {0}, {0}, {0}, {0}, false, PTHREAD_MUTEX_INITIALIZER};
+} g_activeDrawing = {{0}, {0}, 0, {0}, {0}, {0}, {0}, false, PTHREAD_MUTEX_INITIALIZER};
 
-// --- 全局配置 ---
+#pragma mark - SDK全局配置
 static struct {
-    char log_directory[512];
-    std::terminate_handler original_terminate_handler;
-    struct sigaction original_sigactions[NSIG];
-    bool is_initialized;
-} g_sdk_config = {{0}, nullptr, {{0}}, false};
+    // 崩溃日志存储路径
+    char logDirectory[512];
+    // 自定义 std::set_terminate 处理
+    std::terminate_handler originalTerminateHandler;
+    // 系统原信号量处理
+    struct sigaction originalSigactions[NSIG];
+    // 标记SDK是否已初始化
+    bool isInitialized;
+} g_sdkConfig = {{0}, nullptr, {{0}}, false};
 
-// --- 异步信号安全辅助函数 ---
-// (在信号处理函数中不能使用 printf/sprintf/malloc，只能使用这些底层安全调用)
-
-static void safe_write_str(int fd, const char *str) {
+#pragma mark - 辅助处理函数
+// 信号处理函数中不能使用 printf/sprintf/malloc，要使用底层安全调用
+// 向打开的文件描述符中写入指定数据
+static void safeWriteStr(int fd, const char *str) {
     if (str) {
         write(fd, str, strlen(str));
     }
 }
 
-static void safe_write_uint(int fd, uintptr_t val, int base) {
+// 10/16进制数字转为字符存入
+static void safeWriteUint(int fd, uintptr_t val, int base) {
+    // 记录数字
     char buf[32];
     char temp[32];
     int i = 0;
@@ -110,159 +112,178 @@ static void safe_write_uint(int fd, uintptr_t val, int base) {
         temp[i++] = '0';
     } else {
         while (val > 0) {
+            // 取余逆序获取数字值
             int rem = val % base;
+            // 数字根据ASCII表转为字符（16进制有a、b、c）
             temp[i++] = (rem < 10) ? (rem + '0') : (rem - 10 + 'a');
             val /= base;
         }
     }
+    // 转为正序
     int j = 0;
     while (i > 0) {
         buf[j++] = temp[--i];
     }
+    // 数字字符串结尾补\0
     buf[j] = '\0';
     write(fd, buf, j);
 }
 
-static void safe_write_hex(int fd, uintptr_t val) {
-    safe_write_str(fd, "0x");
-    safe_write_uint(fd, val, 16);
+//写入16进制数字
+static void safeWriteHex(int fd, uintptr_t val) {
+    safeWriteStr(fd, "0x");
+    safeWriteUint(fd, val, 16);
 }
 
-static void safe_write_dec(int fd, long val) {
+// 写入10进制数字
+static void safeWriteDec(int fd, long val) {
+    // 负数先写入符号
     if (val < 0) {
-        safe_write_str(fd, "-");
+        safeWriteStr(fd, "-");
         val = -val;
     }
-    safe_write_uint(fd, (uintptr_t)val, 10);
+    // 转为无符号类型的正数写入
+    safeWriteUint(fd, (uintptr_t)val, 10);
 }
 
-// --- 崩溃日志落盘核心实现 ---
-static void write_crash_report(int fd, const char *crash_type,
-                               const char *reason, void **crash_frames,
-                               int crash_frames_count) {
-    safe_write_str(fd, "========================================\n");
-    safe_write_str(fd, "          ZWMobileGuard CRASH REPORT       \n");
-    safe_write_str(fd, "========================================\n\n");
+// 清空活跃图纸数据
+static void clear_active_drawing_internal(void) {
+    memset(g_activeDrawing.name, 0, sizeof(g_activeDrawing.name));
+    memset(g_activeDrawing.path, 0, sizeof(g_activeDrawing.path));
+    memset(g_activeDrawing.hash, 0, sizeof(g_activeDrawing.hash));
+    memset(g_activeDrawing.file_id, 0, sizeof(g_activeDrawing.file_id));
+    memset(g_activeDrawing.project_id, 0, sizeof(g_activeDrawing.project_id));
+    memset(g_activeDrawing.project_name, 0,
+           sizeof(g_activeDrawing.project_name));
+    g_activeDrawing.size = 0;
+    g_activeDrawing.is_active = false;
+}
+
+#pragma mark - 崩溃日志落盘
+static void writeCrashReport(int fd, const char *crash_type, const char *reason, void **crash_frames, int crash_frames_count) {
+    safeWriteStr(fd, "========================================\n");
+    safeWriteStr(fd, "          ZWMOBILE CRASH REPORT       \n");
+    safeWriteStr(fd, "========================================\n\n");
     
     // 崩溃类型与原因
-    safe_write_str(fd, "[Crash Type]: ");
-    safe_write_str(fd, crash_type);
-    safe_write_str(fd, "\n");
+    safeWriteStr(fd, "[Crash Type]: ");
+    safeWriteStr(fd, crash_type);
+    safeWriteStr(fd, "\n");
     
-    safe_write_str(fd, "[Reason]: ");
-    safe_write_str(fd, reason ? reason : "N/A");
-    safe_write_str(fd, "\n\n");
+    safeWriteStr(fd, "[Reason]: ");
+    safeWriteStr(fd, reason ? reason : "N/A");
+    safeWriteStr(fd, "\n\n");
     
     // 图纸元数据 (仅记录脱敏后的标识，符合合规红线)
-    pthread_mutex_lock(&g_active_drawing.mutex);
-    safe_write_str(fd, "[Active Drawing Information]:\n");
-    if (g_active_drawing.is_active) {
-        safe_write_str(fd, "  File Name: ");
-        safe_write_str(fd, g_active_drawing.name);
-        safe_write_str(fd, "\n  File ID: ");
-        safe_write_str(fd, strlen(g_active_drawing.file_id) > 0
-                       ? g_active_drawing.file_id
+    pthread_mutex_lock(&g_activeDrawing.mutex);
+    safeWriteStr(fd, "[Active Drawing Information]:\n");
+    if (g_activeDrawing.is_active) {
+        safeWriteStr(fd, "  File Name: ");
+        safeWriteStr(fd, g_activeDrawing.name);
+        safeWriteStr(fd, "\n  File ID: ");
+        safeWriteStr(fd, strlen(g_activeDrawing.file_id) > 0
+                       ? g_activeDrawing.file_id
                        : "N/A");
-        safe_write_str(fd, "\n  Project ID: ");
-        safe_write_str(fd, strlen(g_active_drawing.project_id) > 0
-                       ? g_active_drawing.project_id
+        safeWriteStr(fd, "\n  Project ID: ");
+        safeWriteStr(fd, strlen(g_activeDrawing.project_id) > 0
+                       ? g_activeDrawing.project_id
                        : "N/A");
-        safe_write_str(fd, "\n  Project Name: ");
-        safe_write_str(fd, strlen(g_active_drawing.project_name) > 0
-                       ? g_active_drawing.project_name
+        safeWriteStr(fd, "\n  Project Name: ");
+        safeWriteStr(fd, strlen(g_activeDrawing.project_name) > 0
+                       ? g_activeDrawing.project_name
                        : "N/A");
-        safe_write_str(fd, "\n  File Size: ");
-        safe_write_dec(fd, g_active_drawing.size);
-        safe_write_str(fd, " bytes\n  File MD5/Hash: ");
-        safe_write_str(fd, g_active_drawing.hash);
-        safe_write_str(fd, "\n  File Path (Raw): ");
-        safe_write_str(fd, g_active_drawing.path);
-        safe_write_str(fd, "\n");
+        safeWriteStr(fd, "\n  File Size: ");
+        safeWriteDec(fd, g_activeDrawing.size);
+        safeWriteStr(fd, " bytes\n  File MD5/Hash: ");
+        safeWriteStr(fd, g_activeDrawing.hash);
+        safeWriteStr(fd, "\n  File Path (Raw): ");
+        safeWriteStr(fd, g_activeDrawing.path);
+        safeWriteStr(fd, "\n");
     } else {
-        safe_write_str(fd, "  No active drawing opened during crash.\n");
+        safeWriteStr(fd, "  No active drawing opened during crash.\n");
     }
-    pthread_mutex_unlock(&g_active_drawing.mutex);
-    safe_write_str(fd, "\n");
+    pthread_mutex_unlock(&g_activeDrawing.mutex);
+    safeWriteStr(fd, "\n");
     
     // 1. 原始 throw 堆栈（如果有）
     if (g_thread_exception.has_exception) {
-        safe_write_str(fd,
+        safeWriteStr(fd,
                        "[Original Throw Stack Trace] (Captured at __cxa_throw):\n");
-        safe_write_str(fd, "  Exception Class: ");
-        safe_write_str(fd, g_thread_exception.exception_type);
-        safe_write_str(fd, "\n");
+        safeWriteStr(fd, "  Exception Class: ");
+        safeWriteStr(fd, g_thread_exception.exception_type);
+        safeWriteStr(fd, "\n");
         
         char stack_desc[2048];
         zwMobileGuardFormatBacktrace(g_thread_exception.backtrace_buffer,
-                                   g_thread_exception.frames_count, stack_desc,
-                                   sizeof(stack_desc));
-        safe_write_str(fd, stack_desc);
-        safe_write_str(fd, "\n");
+                                     g_thread_exception.frames_count, stack_desc,
+                                     sizeof(stack_desc));
+        safeWriteStr(fd, stack_desc);
+        safeWriteStr(fd, "\n");
     }
     
     // 2. 当前崩溃现场堆栈
     if (crash_frames && crash_frames_count > 0) {
-        safe_write_str(fd, "[Termination Stack Trace] (At crash/signal site):\n");
+        safeWriteStr(fd, "[Termination Stack Trace] (At crash/signal site):\n");
         char stack_desc[2048];
         zwMobileGuardFormatBacktrace(crash_frames, crash_frames_count, stack_desc,
-                                   sizeof(stack_desc));
-        safe_write_str(fd, stack_desc);
-        safe_write_str(fd, "\n");
+                                     sizeof(stack_desc));
+        safeWriteStr(fd, stack_desc);
+        safeWriteStr(fd, "\n");
     }
     
     // 3. 用户操作路径 (Breadcrumbs)
     pthread_mutex_lock(&g_breadCrumbs.mutex);
-    safe_write_str(fd, "[User Path Breadcrumbs] (Last 50 operations):\n");
+    safeWriteStr(fd, "[User Path Breadcrumbs] (Last 50 operations):\n");
     if (g_breadCrumbs.count == 0) {
-        safe_write_str(fd, "  No operations recorded.\n");
+        safeWriteStr(fd, "  No operations recorded.\n");
     } else {
         int idx = g_breadCrumbs.head;
         for (int i = 0; i < g_breadCrumbs.count; ++i) {
             BreadCrumb *b = &g_breadCrumbs.items[idx];
-            safe_write_str(fd, "  [");
-            safe_write_str(fd, b->time_str);
-            safe_write_str(fd, "] [");
-            safe_write_str(fd, b->category);
-            safe_write_str(fd, "] ");
-            safe_write_str(fd, b->action);
+            safeWriteStr(fd, "  [");
+            safeWriteStr(fd, b->time_str);
+            safeWriteStr(fd, "] [");
+            safeWriteStr(fd, b->category);
+            safeWriteStr(fd, "] ");
+            safeWriteStr(fd, b->action);
             if (strlen(b->details) > 0) {
-                safe_write_str(fd, " (");
-                safe_write_str(fd, b->details);
-                safe_write_str(fd, ")");
+                safeWriteStr(fd, " (");
+                safeWriteStr(fd, b->details);
+                safeWriteStr(fd, ")");
             }
-            safe_write_str(fd, "\n");
+            safeWriteStr(fd, "\n");
             idx = (idx + 1) % MAX_BREADCRUMBS;
         }
     }
     pthread_mutex_unlock(&g_breadCrumbs.mutex);
-    safe_write_str(fd, "\n");
+    safeWriteStr(fd, "\n");
     
-    safe_write_str(fd, "========================================\n");
+    safeWriteStr(fd, "========================================\n");
 }
 
-// 生成崩溃报告文件名并写入目录
-static void dump_to_file(const char *crash_type, const char *reason,
-                         void **crash_frames, int crash_frames_count) {
-    if (strlen(g_sdk_config.log_directory) == 0) {
+// 生成崩溃报告文件名 && 写入
+static void dumpToFile(const char *crashType, const char *reason, void **crashFrames, int crashFramesCount) {
+    if (strlen(g_sdkConfig.logDirectory) <= 0) {
         return;
     }
     
-    char file_path[768];
-    snprintf(file_path, sizeof(file_path), "%s/crash_%ld.log",
-             g_sdk_config.log_directory, (long)time(NULL));
+    // 生成崩溃报告文件名，以时间戳为文件名一部分
+    char filePath[768];
+    snprintf(filePath, sizeof(filePath), "%s/crash_%ld.log", g_sdkConfig.logDirectory, (long)time(NULL));
     
-    int fd = open(file_path, O_CREAT | O_WRONLY | O_TRUNC, 0644);
+    // 写入文件
+    int fd = open(filePath, O_CREAT | O_WRONLY | O_TRUNC, 0644);
     if (fd >= 0) {
-        write_crash_report(fd, crash_type, reason, crash_frames,
-                           crash_frames_count);
+        writeCrashReport(fd, crashType, reason, crashFrames, crashFramesCount);
         close(fd);
     }
 }
 
+#pragma mark - 自定义崩溃捕获拦截处理
 // 动态链接符号声明，用于获取当前抛出异常的类型
 extern "C" std::type_info *__cxa_current_exception_type();
 
-// --- Terminate 拦截器 (C++ 级未捕获异常句柄) ---
+// Terminate 崩溃捕获拦截处理
 static void zwMobileGuardTerminateHandler(void) {
     void *crash_frames[MAX_STACK_FRAMES];
     int crash_frames_count =
@@ -304,137 +325,185 @@ static void zwMobileGuardTerminateHandler(void) {
              exception_type_name, strlen(message_buf) > 0 ? message_buf : "N/A");
     
     // 落盘写入
-    dump_to_file("C++ Uncaught Exception (std::terminate)", final_reason,
+    dumpToFile("C++ Uncaught Exception (std::terminate)", final_reason,
                  crash_frames, crash_frames_count);
     
     // 转发给原本的 terminate 处理器
-    if (g_sdk_config.original_terminate_handler) {
-        g_sdk_config.original_terminate_handler();
+    if (g_sdkConfig.originalTerminateHandler) {
+        g_sdkConfig.originalTerminateHandler();
     } else {
         abort();
     }
 }
 
-// --- POSIX 信号拦截器 (操作系统底层硬件/系统级崩溃) ---
+// POSIX 崩溃捕获拦截处理
 static void zwMobileGuardSignalHandler(int sig, siginfo_t *info, void *context) {
-    void *crash_frames[MAX_STACK_FRAMES];
-    int crash_frames_count =
-    zwMobileGuardCaptureBacktrace(crash_frames, MAX_STACK_FRAMES);
+    // 获取堆栈
+    void *crashFrames[MAX_STACK_FRAMES];
+    int crashFramesCount = zwMobileGuardCaptureBacktrace(crashFrames, MAX_STACK_FRAMES);
     
     // 构造崩溃原因
     char reason[128];
     snprintf(reason, sizeof(reason), "Signal %d (%s) at address %p", sig,
              strsignal(sig), info ? info->si_addr : nullptr);
     
-    // 写入文件 (注意：在信号处理函数里调用 dump_to_file 属于安全子集)
-    dump_to_file("OS POSIX Signal Crash", reason, crash_frames,
-                 crash_frames_count);
+    // 写入文件
+    dumpToFile("OS POSIX Signal Crash", reason, crashFrames, crashFramesCount);
     
-    // 恢复系统默认或原本的信号处理
-    struct sigaction original_action = g_sdk_config.original_sigactions[sig];
-    if (original_action.sa_handler == SIG_DFL) {
+    // 恢复原本的信号处理
+    struct sigaction originalAction = g_sdkConfig.originalSigactions[sig];
+    // 默认信号处理
+    if (originalAction.sa_handler == SIG_DFL) {
         signal(sig, SIG_DFL);
         raise(sig);
-    } else if (original_action.sa_handler != SIG_IGN) {
-        if (original_action.sa_flags & SA_SIGINFO) {
-            original_action.sa_sigaction(sig, info, context);
+    } else if (originalAction.sa_handler != SIG_IGN) {
+        // 有自定义处理，根据参数类型 返回自定义处理
+        if (originalAction.sa_flags & SA_SIGINFO) {
+            originalAction.sa_sigaction(sig, info, context);
         } else {
-            original_action.sa_handler(sig);
+            originalAction.sa_handler(sig);
         }
     }
 }
 
-// 清空活跃图纸数据
-static void clear_active_drawing_internal(void) {
-    memset(g_active_drawing.name, 0, sizeof(g_active_drawing.name));
-    memset(g_active_drawing.path, 0, sizeof(g_active_drawing.path));
-    memset(g_active_drawing.hash, 0, sizeof(g_active_drawing.hash));
-    memset(g_active_drawing.file_id, 0, sizeof(g_active_drawing.file_id));
-    memset(g_active_drawing.project_id, 0, sizeof(g_active_drawing.project_id));
-    memset(g_active_drawing.project_name, 0, sizeof(g_active_drawing.project_name));
-    g_active_drawing.size = 0;
-    g_active_drawing.is_active = false;
+#pragma mark - 线程备用信号栈
+static pthread_key_t g_alternateStackKey;
+static pthread_once_t g_alternateStackKeyOnce = PTHREAD_ONCE_INIT;
+
+// 线程退出时，释放备用栈
+static void destroyAlternateStack(void *ptr) {
+    if (ptr) {
+        stack_t altStack;
+        altStack.ss_sp = nullptr;
+        altStack.ss_size = 0;
+        altStack.ss_flags = SS_DISABLE;
+        sigaltstack(&altStack, nullptr);
+        free(ptr);
+    }
 }
 
-// --- SDK 对外 C API 实现 ---
+// 备用栈初始化回掉函数
+static void alternateStackInitFunc() {
+    // 线程安全执行析构
+    pthread_key_create(&g_alternateStackKey, destroyAlternateStack);
+}
 
-extern "C" int zwMobileGuardInit(const char *log_dir) {
-    if (g_sdk_config.is_initialized) {
+#pragma mark - 对外 C API 实现
+// 初始化 注册 std::terminate、POSIX
+extern "C" int zwMobileGuardInit(const char *logDir) {
+    if (g_sdkConfig.isInitialized) {
         return 0;
     }
     
-    if (log_dir == nullptr || strlen(log_dir) == 0) {
+    if (logDir == nullptr || strlen(logDir) <= 0) {
         return -1;
     }
     
-    strncpy(g_sdk_config.log_directory, log_dir,
-            sizeof(g_sdk_config.log_directory) - 1);
-    
+    strncpy(g_sdkConfig.logDirectory, logDir, sizeof(g_sdkConfig.logDirectory) - 1);
     // 创建日志目录
-#ifdef __APPLE__
-    mkdir(g_sdk_config.log_directory, 0755);
-#else
-    mkdir(g_sdk_config.log_directory, 0755);
-#endif
+    mkdir(g_sdkConfig.logDirectory, 0755);
     
-    // 1. 设置 C++ std::terminate 拦截器
-    g_sdk_config.original_terminate_handler =
-    std::set_terminate(zwMobileGuardTerminateHandler);
+    // 设置 std::terminate 拦截器
+    g_sdkConfig.originalTerminateHandler = std::set_terminate(zwMobileGuardTerminateHandler);
     
-    // 2. 注册 POSIX 信号处理器，对 SIGSEGV, SIGABRT 等硬件/物理崩溃进行兜底
-    int signals_to_catch[] = {SIGSEGV, SIGABRT, SIGILL, SIGFPE, SIGBUS};
-    int num_signals = sizeof(signals_to_catch) / sizeof(signals_to_catch[0]);
+    // 注册 POSIX 信号处理器
+    // 只处理这五个即可，其余信号为系统层面不能捕获，或者是用户主动操作的正常信号
+    int signalsToCatch[] = {SIGSEGV, SIGABRT, SIGILL, SIGFPE, SIGBUS};
     
     struct sigaction sa;
     memset(&sa, 0, sizeof(sa));
+    // 设置信号崩溃时处理函数
     sa.sa_sigaction = zwMobileGuardSignalHandler;
-    sa.sa_flags = SA_SIGINFO | SA_ONSTACK; // 使用备用信号栈防栈溢出
-    sigemptyset(&sa.sa_mask);
+    // 使用三参数崩溃信号函数，以便能获取物理地址
+    // 使用备用信号栈防栈溢出
+    sa.sa_flags = SA_SIGINFO | SA_ONSTACK;
     
-    for (int i = 0; i < num_signals; ++i) {
-        int sig = signals_to_catch[i];
-        sigaction(sig, &sa, &g_sdk_config.original_sigactions[sig]);
+    for (int i = 0; i < 5; ++i) {
+        int sig = signalsToCatch[i];
+        // 设置崩溃信号自定义处理器，并存储原处理
+        sigaction(sig, &sa, &g_sdkConfig.originalSigactions[sig]);
     }
     
-    g_sdk_config.is_initialized = true;
+    // 默认为主线程/当前线程注册备用信号栈
+    zwMobileGuardRegisterThreadSignalStack();
+    
+    g_sdkConfig.isInitialized = true;
     return 0;
 }
 
+// 注册备用信号栈
+extern "C" void zwMobileGuardRegisterThreadSignalStack(void) {
+    // 线程安全防护 && 只执行一次
+    pthread_once(&g_alternateStackKeyOnce, alternateStackInitFunc);
+    // g_alternateStackKey 保证线程安全，每个线程只有一个备用栈
+    if (pthread_getspecific(g_alternateStackKey)) {
+        return;
+    }
+    
+    // 备用栈大小为默认大小
+    void *stackBase = malloc(SIGSTKSZ);
+    if (!stackBase) {
+        return;
+    }
+    
+    stack_t alternateSingleStack;
+    // 配置备用栈信息
+    alternateSingleStack.ss_sp = stackBase;
+    alternateSingleStack.ss_size = SIGSTKSZ;
+    alternateSingleStack.ss_flags = 0;
+    // 创建备用信号栈，当线程因栈溢出崩溃时，能捕获崩溃
+    if (sigaltstack(&alternateSingleStack, nullptr) == 0) {
+        pthread_setspecific(g_alternateStackKey, stackBase);
+    } else {
+        free(stackBase);
+    }
+}
+
+// 关联当前活跃图纸
 extern "C" void zwMobileGuardSetActiveDrawingContext(
-                                                   const char *name, const char *path, long size, const char *hash,
-                                                   const char *file_id, const char *project_id, const char *project_name) {
-    pthread_mutex_lock(&g_active_drawing.mutex);
+    const char *name, const char *path, long size, const char *hash,
+    const char *file_id, const char *project_id, const char *project_name) {
+    pthread_mutex_lock(&g_activeDrawing.mutex);
     // 绑定图纸时，清空历史数据
     clear_active_drawing_internal();
     if (name)
-        strncpy(g_active_drawing.name, name, sizeof(g_active_drawing.name) - 1);
+    {
+        strncpy(g_activeDrawing.name, name, sizeof(g_activeDrawing.name) - 1);
+    }
     if (path)
-        strncpy(g_active_drawing.path, path, sizeof(g_active_drawing.path) - 1);
-    g_active_drawing.size = size;
+    {
+        strncpy(g_activeDrawing.path, path, sizeof(g_activeDrawing.path) - 1);
+    }
     if (hash)
-        strncpy(g_active_drawing.hash, hash, sizeof(g_active_drawing.hash) - 1);
+    {
+        strncpy(g_activeDrawing.hash, hash, sizeof(g_activeDrawing.hash) - 1);
+    }
     if (file_id)
-        strncpy(g_active_drawing.file_id, file_id,
-                sizeof(g_active_drawing.file_id) - 1);
+    {
+        strncpy(g_activeDrawing.file_id, file_id, sizeof(g_activeDrawing.file_id) - 1);
+    }
     if (project_id)
-        strncpy(g_active_drawing.project_id, project_id,
-                sizeof(g_active_drawing.project_id) - 1);
+    {
+        strncpy(g_activeDrawing.project_id, project_id, sizeof(g_activeDrawing.project_id) - 1);
+    }
     if (project_name)
-        strncpy(g_active_drawing.project_name, project_name,
-                sizeof(g_active_drawing.project_name) - 1);
-    g_active_drawing.is_active = true;
-    pthread_mutex_unlock(&g_active_drawing.mutex);
+    {
+        strncpy(g_activeDrawing.project_name, project_name, sizeof(g_activeDrawing.project_name) - 1);
+    }
+    g_activeDrawing.size = size;
+    g_activeDrawing.is_active = true;
+    pthread_mutex_unlock(&g_activeDrawing.mutex);
 }
 
+// 清空/解除当前活跃图纸关联
 extern "C" void zwMobileGuardClearActiveDrawing(void) {
-    pthread_mutex_lock(&g_active_drawing.mutex);
-    clear_active_drawing_internal();
-    pthread_mutex_unlock(&g_active_drawing.mutex);
+  pthread_mutex_lock(&g_activeDrawing.mutex);
+  clear_active_drawing_internal();
+  pthread_mutex_unlock(&g_activeDrawing.mutex);
 }
 
-extern "C" void zwMobileGuardAddBreadcrumb(const char *category,
-                                         const char *action,
-                                         const char *details) {
+// 添加用户操作路径
+extern "C" void zwMobileGuardAddBreadcrumb(const char *category, const char *action, const char *details) {
     pthread_mutex_lock(&g_breadCrumbs.mutex);
     // 环形缓存操作路径
     // 从头开始存储，存满时覆盖起始位置，head记录最老路径的位置
@@ -466,29 +535,25 @@ extern "C" void zwMobileGuardAddBreadcrumb(const char *category,
     pthread_mutex_unlock(&g_breadCrumbs.mutex);
 }
 
+// 模拟崩溃写入测试
 extern "C" void zwMobileGuardSimulateCrashDump(const char *message) {
-    void *crash_frames[MAX_STACK_FRAMES];
-    int crash_frames_count =
-    zwMobileGuardCaptureBacktrace(crash_frames, MAX_STACK_FRAMES);
-    dump_to_file("Manual Simulated Crash (Testing)", message, crash_frames,
-                 crash_frames_count);
+    void *crashFrames[MAX_STACK_FRAMES];
+    // 获取调用栈
+    int crashFramesCount = zwMobileGuardCaptureBacktrace(crashFrames, MAX_STACK_FRAMES);
+    dumpToFile("Simulated Uncaught Exception", message, crashFrames, crashFramesCount);
 }
 
-extern "C" void zwMobileGuardRecordObjCCrash(const char *name, const char *reason,
-                                           void **frames, int count) {
-    char final_reason[512];
-    snprintf(final_reason, sizeof(final_reason), "Name: %s, Reason: %s",
-             name ? name : "N/A", reason ? reason : "N/A");
-    dump_to_file("Objective-C Uncaught Exception", final_reason, frames, count);
+// 记录OC异常到本地
+extern "C" void zwMobileGuardRecordObjCCrash(const char *name, const char *reason, void **frames, int count) {
+    char finalReason[512];
+    snprintf(finalReason, sizeof(finalReason), "异常名称: %s, 异常原因: %s", name ? name : "NULL", reason ? reason : "NULL");
+    dumpToFile("OC Uncaught Exception", finalReason, frames, count);
 }
 
-extern "C" void zwMobileGuardRecordManagedException(const char *language,
-                                                  const char *name,
-                                                  const char *reason) {
-    char final_reason[2048];
-    snprintf(final_reason, sizeof(final_reason),
-             "Language: %s, Name: %s, Reason: %s",
-             language ? language : "Managed", name ? name : "N/A",
-             reason ? reason : "N/A");
-    dump_to_file("Managed Uncaught Exception", final_reason, nullptr, 0);
+// 记录 Java 层未捕获异常
+extern "C" void zwMobileGuardRecordManagedException(const char *language, const char *name, const char *reason) {
+    char finalReason[2048];
+    snprintf(finalReason, sizeof(finalReason), "语言类别: %s, 异常类名: %s, 异常描述或堆栈文本: %s", language ? language : "JAVA", name ? name : "NULL", reason ? reason : "NULL");
+    // 托管异常(非原生异常)
+    dumpToFile("Managed Uncaught Exception", finalReason, nullptr, 0);
 }
