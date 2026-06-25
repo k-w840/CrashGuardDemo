@@ -56,6 +56,7 @@ extern "C" int zwMobileGuardCaptureBacktrace(void** buffer, int maxFrames) {
 #endif
 }
 
+// 把 C++ 的“符号修饰名”还原成函数/类型名。
 extern "C" char* zwMobileGuardDemangle(const char* mangled_name) {
     if (mangled_name == NULL) {
         return NULL;

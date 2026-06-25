@@ -12,7 +12,6 @@
 #include <unistd.h>
 #include <typeinfo>
 
-// 声明 core 层记录抛出状态的 C 接口
 extern "C" void zwMobileGuardRecordThrowState(void* thrown_exception, std::type_info* tinfo);
 
 typedef void (*CxaThrowType)(void*, std::type_info*, void (*)(void*));
@@ -21,6 +20,12 @@ typedef void (*CxaRethrowType)();
 struct OriginalCxaThrow {
     const void* imageBase;
     CxaThrowType function;
+};
+
+struct SymbolTables64 {
+    struct nlist_64* symbolTable;
+    char* stringTable;
+    uint32_t* indirectSymbolTable;
 };
 
 static pthread_mutex_t g_cxaHookMutex = PTHREAD_MUTEX_INITIALIZER;
@@ -171,17 +176,39 @@ static const struct load_command* findCommand(const struct mach_header_64* heade
     return nullptr;
 }
 
-static void rebindSection(const struct section_64* section,
-                          intptr_t slide,
-                          const void* imageBase,
-                          struct nlist_64* symbolTable,
-                          char* stringTable,
-                          uint32_t* indirectSymbolTable) {
-    if (section == nullptr || symbolTable == nullptr || stringTable == nullptr || indirectSymbolTable == nullptr) {
+static bool buildSymbolTables64(const struct mach_header_64* header,
+                                intptr_t slide,
+                                SymbolTables64* tables) {
+    if (header == nullptr || tables == nullptr) {
+        return false;
+    }
+
+    const struct symtab_command* symtabCommand =
+        (const struct symtab_command*)findCommand(header, LC_SYMTAB);
+    const struct dysymtab_command* dysymtabCommand =
+        (const struct dysymtab_command*)findCommand(header, LC_DYSYMTAB);
+    const struct segment_command_64* linkeditSegment = findSegment64(header, SEG_LINKEDIT);
+    if (symtabCommand == nullptr || dysymtabCommand == nullptr || linkeditSegment == nullptr) {
+        return false;
+    }
+
+    uintptr_t linkeditBase = (uintptr_t)slide + linkeditSegment->vmaddr - linkeditSegment->fileoff;
+    tables->symbolTable = (struct nlist_64*)(linkeditBase + symtabCommand->symoff);
+    tables->stringTable = (char*)(linkeditBase + symtabCommand->stroff);
+    tables->indirectSymbolTable = (uint32_t*)(linkeditBase + dysymtabCommand->indirectsymoff);
+    return true;
+}
+
+static void rebindSymbolInSection64(const struct section_64* section,
+                                    intptr_t slide,
+                                    const void* imageBase,
+                                    const SymbolTables64* tables) {
+    if (section == nullptr || tables == nullptr || tables->symbolTable == nullptr ||
+        tables->stringTable == nullptr || tables->indirectSymbolTable == nullptr) {
         return;
     }
 
-    uint32_t* indirectSymbolIndexes = indirectSymbolTable + section->reserved1;
+    uint32_t* indirectSymbolIndexes = tables->indirectSymbolTable + section->reserved1;
     void** bindings = (void**)((uintptr_t)slide + section->addr);
     int oldProtection = PROT_READ;
     bool changedProtection = makeWritable(bindings, section->size, &oldProtection);
@@ -197,7 +224,7 @@ static void rebindSection(const struct section_64* section,
             continue;
         }
 
-        const char* symbolName = stringTable + symbolTable[symbolIndex].n_un.n_strx;
+        const char* symbolName = tables->stringTable + tables->symbolTable[symbolIndex].n_un.n_strx;
         if (symbolName[0] == '_' && strcmp(symbolName + 1, "__cxa_throw") == 0) {
             if (bindings[i] == (void*)zwMobileGuardCxaThrowDecorator) {
                 continue;
@@ -210,12 +237,7 @@ static void rebindSection(const struct section_64* section,
     restoreProtection(bindings, section->size, oldProtection);
 }
 
-static void rebindSegmentSections(const struct segment_command_64* segment,
-                                  intptr_t slide,
-                                  const void* imageBase,
-                                  struct nlist_64* symbolTable,
-                                  char* stringTable,
-                                  uint32_t* indirectSymbolTable) {
+static void rebindSectionsInSegment64(const struct segment_command_64* segment, intptr_t slide, const void* imageBase, const SymbolTables64* tables) {
     if (segment == nullptr) {
         return;
     }
@@ -224,7 +246,7 @@ static void rebindSegmentSections(const struct segment_command_64* segment,
     for (uint32_t i = 0; i < segment->nsects; ++i, ++section) {
         uint32_t sectionType = section->flags & SECTION_TYPE;
         if (sectionType == S_LAZY_SYMBOL_POINTERS || sectionType == S_NON_LAZY_SYMBOL_POINTERS) {
-            rebindSection(section, slide, imageBase, symbolTable, stringTable, indirectSymbolTable);
+            rebindSymbolInSection64(section, slide, imageBase, tables);
         }
     }
 }
@@ -234,21 +256,15 @@ static void rebindImage(const struct mach_header* rawHeader, intptr_t slide) {
         return;
     }
 
+    // 构建符号表上下文
     const struct mach_header_64* header = (const struct mach_header_64*)rawHeader;
-    const struct symtab_command* symtabCommand = (const struct symtab_command*)findCommand(header, LC_SYMTAB);
-    const struct dysymtab_command* dysymtabCommand = (const struct dysymtab_command*)findCommand(header, LC_DYSYMTAB);
-    const struct segment_command_64* linkeditSegment = findSegment64(header, SEG_LINKEDIT);
-    if (symtabCommand == nullptr || dysymtabCommand == nullptr || linkeditSegment == nullptr) {
+    SymbolTables64 tables = {};
+    if (!buildSymbolTables64(header, slide, &tables)) {
         return;
     }
-
-    uintptr_t linkeditBase = (uintptr_t)slide + linkeditSegment->vmaddr - linkeditSegment->fileoff;
-    struct nlist_64* symbolTable = (struct nlist_64*)(linkeditBase + symtabCommand->symoff);
-    char* stringTable = (char*)(linkeditBase + symtabCommand->stroff);
-    uint32_t* indirectSymbolTable = (uint32_t*)(linkeditBase + dysymtabCommand->indirectsymoff);
-
-    rebindSegmentSections(findSegment64(header, SEG_DATA), slide, header, symbolTable, stringTable, indirectSymbolTable);
-    rebindSegmentSections(findSegment64(header, "__DATA_CONST"), slide, header, symbolTable, stringTable, indirectSymbolTable);
+    // 遍历 SEG_DATA 和 __DATA_CONST 做重绑
+    rebindSectionsInSegment64(findSegment64(header, SEG_DATA), slide, header, &tables);
+    rebindSectionsInSegment64(findSegment64(header, "__DATA_CONST"), slide, header, &tables);
 }
 
 #pragma mark - 动态链接HOOK,拦截并替换所有加载的动态库

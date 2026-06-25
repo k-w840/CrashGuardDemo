@@ -28,7 +28,7 @@ extern "C" void zwMobileGuardInstallCxaThrowHook(void);
 // 操作路径最大数量
 #define MAX_BREADCRUMBS 50
 
-// --- 线程局部变量，保存最近一次 throw 的异常现场 ---
+// 线程局部变量，保存最近一次 throw 的异常现场
 struct ThreadExceptionInfo {
     void *backtraceBuffer[MAX_STACK_FRAMES];
     int framesCount;
@@ -39,12 +39,15 @@ struct ThreadExceptionInfo {
 // 使用 thread_local 保存每个线程的最新 throw 堆栈
 static thread_local ThreadExceptionInfo g_threadException = {{0}, 0, {0}, false};
 
-// 外部声明，用于在 hook 中填充 TLS 栈
+// 在 hook 中获取堆栈
 extern "C" void zwMobileGuardRecordThrowState(void *thrown_exception, std::type_info *tinfo) {
+    // 获取当前堆栈
     g_threadException.framesCount = zwMobileGuardCaptureBacktrace(g_threadException.backtraceBuffer, MAX_STACK_FRAMES);
     g_threadException.hasException = true;
     if (tinfo && tinfo->name()) {
+        // 符号修饰名转为函数名
         char *demangled = zwMobileGuardDemangle(tinfo->name());
+        // 转成功用实际函数名，没转成功用原始名
         if (demangled) {
             strncpy(g_threadException.exceptionType, demangled, sizeof(g_threadException.exceptionType) - 1);
             free(demangled);
