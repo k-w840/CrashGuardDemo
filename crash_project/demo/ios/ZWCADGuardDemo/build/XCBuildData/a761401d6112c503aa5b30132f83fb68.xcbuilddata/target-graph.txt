@@ -1,0 +1,4 @@
+Target dependency graph (2 targets)
+Target 'ZWCADGuardDemo' in project 'ZWCADGuardDemo'
+➜ Explicit dependency on target 'ZWCADGuard' in project 'ZWCADGuardDemo'
+Target 'ZWCADGuard' in project 'ZWCADGuardDemo' (no dependencies)
