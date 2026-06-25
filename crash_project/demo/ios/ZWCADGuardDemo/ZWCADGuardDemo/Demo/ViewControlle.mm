@@ -1,5 +1,5 @@
 #import "ViewController.h"
-#import "ZWCADGuard.h"
+#import "ZWMobileGuard.h"
 #import <Masonry/Masonry.h>
 #include <signal.h>
 #include <stdexcept>
@@ -73,7 +73,7 @@ struct DestructorDoubleThrower {
     NSString *projectID = @"project_365_a01";
     NSString *projectName = @"BuildingDesign";
 
-    [[ZWCADGuard sharedInstance] setActiveDrawingName:drawingName
+    [[ZWMobileGuard sharedInstance] setActiveDrawingName:drawingName
                                                  path:drawingPath
                                                  size:fileSize
                                                  hash:fileHash
@@ -81,7 +81,7 @@ struct DestructorDoubleThrower {
                                             projectID:projectID
                                           projectName:projectName];
 
-    [[ZWCADGuard sharedInstance] addBreadcrumbCategory:@"Drawing"
+    [[ZWMobileGuard sharedInstance] addBreadcrumbCategory:@"Drawing"
                                                 action:@"OpenDWG"
                                                details:[NSString stringWithFormat:@"name=%@, size=%.2fMB", drawingName, fileSize / 1024.0 / 1024.0]];
 
@@ -99,29 +99,29 @@ struct DestructorDoubleThrower {
         scale = 1.0f;
     }
 
-    [[ZWCADGuard sharedInstance] addBreadcrumbCategory:@"Gesture"
+    [[ZWMobileGuard sharedInstance] addBreadcrumbCategory:@"Gesture"
                                                 action:@"PinchZoom"
                                                details:[NSString stringWithFormat:@"zoom_scale=%.2f", scale]];
     [self showDrawingActionAlert:[NSString stringWithFormat:@"[埋点成功] 写入操作面包屑:\n[Gesture][PinchZoom] scale=%.2f", scale]];
 }
 
 - (void)actionDrawCircle {
-    [[ZWCADGuard sharedInstance] addBreadcrumbCategory:@"Draw"
+    [[ZWMobileGuard sharedInstance] addBreadcrumbCategory:@"Draw"
                                                 action:@"CreateCircle"
                                                details:@"center=(341.25, 592.11), radius=45.0"];
     [self showDrawingActionAlert:@"[埋点成功] 写入操作面包屑:\n[Draw][CreateCircle] center=(341.25, 592.11), radius=45.0"];
 }
 
 - (void)actionDrawLine {
-    [[ZWCADGuard sharedInstance] addBreadcrumbCategory:@"Draw"
+    [[ZWMobileGuard sharedInstance] addBreadcrumbCategory:@"Draw"
                                                 action:@"CreateLine"
                                                details:@"from=(12.0, 50.0), to=(120.5, 95.0)"];
     [self showDrawingActionAlert:@"[埋点成功] 写入操作面包屑:\n[Draw][CreateLine] from=(12,50), to=(120.5,95)"];
 }
 
 - (void)actionCloseDrawing {
-    [[ZWCADGuard sharedInstance] clearActiveDrawing];
-    [[ZWCADGuard sharedInstance] addBreadcrumbCategory:@"Drawing"
+    [[ZWMobileGuard sharedInstance] clearActiveDrawing];
+    [[ZWMobileGuard sharedInstance] addBreadcrumbCategory:@"Drawing"
                                                 action:@"CloseDWG"
                                                details:@"file=building_structure_layout.dwg"];
 
@@ -132,22 +132,22 @@ struct DestructorDoubleThrower {
 #pragma mark - CellAction 崩溃场景触发事件
 
 - (void)triggerCppError {
-    [[ZWCADGuard sharedInstance] addBreadcrumbCategory:@"Test" action:@"CrashTrigger" details:@"Uncaught std::runtime_error"];
+    [[ZWMobileGuard sharedInstance] addBreadcrumbCategory:@"Test" action:@"CrashTrigger" details:@"Uncaught std::runtime_error"];
     throw std::runtime_error("Triggered uncaught std::runtime_error inside UI Thread");
 }
 
 - (void)triggerCustomCppException {
-    [[ZWCADGuard sharedInstance] addBreadcrumbCategory:@"Test" action:@"CrashTrigger" details:@"Uncaught Custom CPP Exception"];
+    [[ZWMobileGuard sharedInstance] addBreadcrumbCategory:@"Test" action:@"CrashTrigger" details:@"Uncaught Custom CPP Exception"];
     throw CustomCPPException("This is a custom non-standard C++ exception payload");
 }
 
 - (void)triggerPrimitiveException {
-    [[ZWCADGuard sharedInstance] addBreadcrumbCategory:@"Test" action:@"CrashTrigger" details:@"Uncaught Primitive C++ exception"];
+    [[ZWMobileGuard sharedInstance] addBreadcrumbCategory:@"Test" action:@"CrashTrigger" details:@"Uncaught Primitive C++ exception"];
     throw 42;
 }
 
 - (void)triggerDoubleThrowException {
-    [[ZWCADGuard sharedInstance] addBreadcrumbCategory:@"Test" action:@"CrashTrigger" details:@"Destructor double throw"];
+    [[ZWMobileGuard sharedInstance] addBreadcrumbCategory:@"Test" action:@"CrashTrigger" details:@"Destructor double throw"];
     try {
         DestructorDoubleThrower thrower;
         throw std::runtime_error("Initial Exception in scope");
@@ -157,13 +157,13 @@ struct DestructorDoubleThrower {
 }
 
 - (void)triggerOCFirewall {
-    [[ZWCADGuard sharedInstance] addBreadcrumbCategory:@"Test" action:@"FirewallTrigger" details:@"OC Exception Firewall"];
+    [[ZWMobileGuard sharedInstance] addBreadcrumbCategory:@"Test" action:@"FirewallTrigger" details:@"OC Exception Firewall"];
     @try {
         try {
             throw std::out_of_range("ZWCAD C++ Vector indexing out of range");
         } catch (const std::exception& e) {
             NSString *reason = [NSString stringWithUTF8String:e.what()];
-            @throw [NSException exceptionWithName:@"ZWCADGuardBorderFirewallException" reason:reason userInfo:nil];
+            @throw [NSException exceptionWithName:@"zwMobileGuardBorderFirewallException" reason:reason userInfo:nil];
         }
     } @catch (NSException *exception) {
         [self showFirewallAlert:[NSString stringWithFormat:@"[OC防火墙拦截成功] 防火墙已捕获底层逃逸异常，并将其安全桥接给 OC 运行时进行业务降级处理。应用未崩溃！\n异常原因: %@", exception.reason]];
@@ -171,7 +171,7 @@ struct DestructorDoubleThrower {
 }
 
 - (void)triggerJniFirewallMock {
-    [[ZWCADGuard sharedInstance] addBreadcrumbCategory:@"Test" action:@"FirewallTrigger" details:@"JNI Firewall Mock"];
+    [[ZWMobileGuard sharedInstance] addBreadcrumbCategory:@"Test" action:@"FirewallTrigger" details:@"JNI Firewall Mock"];
     try {
         throw std::invalid_argument("Invalid drawing coordinates (NAN detected)");
     } catch (const std::exception& e) {
@@ -184,40 +184,40 @@ struct DestructorDoubleThrower {
 }
 
 - (void)triggerOCBoundsException {
-    [[ZWCADGuard sharedInstance] addBreadcrumbCategory:@"Test" action:@"CrashTrigger" details:@"OC Array Index Bounds"];
+    [[ZWMobileGuard sharedInstance] addBreadcrumbCategory:@"Test" action:@"CrashTrigger" details:@"OC Array Index Bounds"];
     NSArray *arr = @[];
     id obj = arr[0];
     NSLog(@"%@", obj);
 }
 
 - (void)triggerOCSelectorException {
-    [[ZWCADGuard sharedInstance] addBreadcrumbCategory:@"Test" action:@"CrashTrigger" details:@"OC Unrecognized Selector"];
+    [[ZWMobileGuard sharedInstance] addBreadcrumbCategory:@"Test" action:@"CrashTrigger" details:@"OC Unrecognized Selector"];
     [self performSelector:@selector(unimplementedSelectorInThisController)];
 }
 
 - (void)triggerSigSegv {
-    [[ZWCADGuard sharedInstance] addBreadcrumbCategory:@"Test" action:@"CrashTrigger" details:@"SIGSEGV"];
+    [[ZWMobileGuard sharedInstance] addBreadcrumbCategory:@"Test" action:@"CrashTrigger" details:@"SIGSEGV"];
     volatile int *ptr = nullptr;
     *ptr = 0xdead;
 }
 
 - (void)triggerSigAbrt {
-    [[ZWCADGuard sharedInstance] addBreadcrumbCategory:@"Test" action:@"CrashTrigger" details:@"SIGABRT"];
+    [[ZWMobileGuard sharedInstance] addBreadcrumbCategory:@"Test" action:@"CrashTrigger" details:@"SIGABRT"];
     abort();
 }
 
 - (void)triggerSigIll {
-    [[ZWCADGuard sharedInstance] addBreadcrumbCategory:@"Test" action:@"CrashTrigger" details:@"SIGILL"];
+    [[ZWMobileGuard sharedInstance] addBreadcrumbCategory:@"Test" action:@"CrashTrigger" details:@"SIGILL"];
     __builtin_trap();
 }
 
 - (void)triggerSigFpe {
-    [[ZWCADGuard sharedInstance] addBreadcrumbCategory:@"Test" action:@"CrashTrigger" details:@"SIGFPE"];
+    [[ZWMobileGuard sharedInstance] addBreadcrumbCategory:@"Test" action:@"CrashTrigger" details:@"SIGFPE"];
     raise(SIGFPE);
 }
 
 - (void)triggerStackOverflow {
-    [[ZWCADGuard sharedInstance] addBreadcrumbCategory:@"Test" action:@"CrashTrigger" details:@"Stack Overflow"];
+    [[ZWMobileGuard sharedInstance] addBreadcrumbCategory:@"Test" action:@"CrashTrigger" details:@"Stack Overflow"];
     [self recursiveOverflow:0];
 }
 

@@ -1,5 +1,5 @@
 #import "AppDelegate.h"
-#import "ZWCADGuard.h"
+#import "ZWMobileGuard.h"
 #import "AppTabControllerFactory.h"
 #import "StaticTabBarController.h"
 
@@ -15,10 +15,10 @@
     self.window.rootViewController = tabBarController;
     [self.window makeKeyAndVisible];
     // 初始化 SDK
-    [[ZWCADGuard sharedInstance] initializeSDK];
+    [[ZWMobileGuard sharedInstance] initializeSDK];
     
     // 初始化一些基础面包屑，记录启动事件
-    [[ZWCADGuard sharedInstance] addBreadcrumbCategory:@"App" action:@"Launch" details:@"didFinishLaunchingWithOptions"];
+    [[ZWMobileGuard sharedInstance] addBreadcrumbCategory:@"App" action:@"Launch" details:@"didFinishLaunchingWithOptions"];
     return YES;
 }
 

@@ -36,13 +36,13 @@ static thread_local ThreadExceptionInfo g_thread_exception = {
     {0}, 0, {0}, false};
 
 // 外部声明，用于在 hook 中填充 TLS 栈
-extern "C" void ZWCADGuard_RecordThrowState(void *thrown_exception,
+extern "C" void zwMobileGuardRecordThrowState(void *thrown_exception,
                                             std::type_info *tinfo) {
-    g_thread_exception.frames_count = ZWCADGuard_CaptureBacktrace(
+    g_thread_exception.frames_count = zwMobileGuardCaptureBacktrace(
                                                                   g_thread_exception.backtrace_buffer, MAX_STACK_FRAMES);
     g_thread_exception.has_exception = true;
     if (tinfo && tinfo->name()) {
-        char *demangled = ZWCADGuard_Demangle(tinfo->name());
+        char *demangled = zwMobileGuardDemangle(tinfo->name());
         if (demangled) {
             strncpy(g_thread_exception.exception_type, demangled,
                     sizeof(g_thread_exception.exception_type) - 1);
@@ -141,7 +141,7 @@ static void write_crash_report(int fd, const char *crash_type,
                                const char *reason, void **crash_frames,
                                int crash_frames_count) {
     safe_write_str(fd, "========================================\n");
-    safe_write_str(fd, "          ZWCADGuard CRASH REPORT       \n");
+    safe_write_str(fd, "          ZWMobileGuard CRASH REPORT       \n");
     safe_write_str(fd, "========================================\n\n");
     
     // 崩溃类型与原因
@@ -193,7 +193,7 @@ static void write_crash_report(int fd, const char *crash_type,
         safe_write_str(fd, "\n");
         
         char stack_desc[2048];
-        ZWCADGuard_FormatBacktrace(g_thread_exception.backtrace_buffer,
+        zwMobileGuardFormatBacktrace(g_thread_exception.backtrace_buffer,
                                    g_thread_exception.frames_count, stack_desc,
                                    sizeof(stack_desc));
         safe_write_str(fd, stack_desc);
@@ -204,7 +204,7 @@ static void write_crash_report(int fd, const char *crash_type,
     if (crash_frames && crash_frames_count > 0) {
         safe_write_str(fd, "[Termination Stack Trace] (At crash/signal site):\n");
         char stack_desc[2048];
-        ZWCADGuard_FormatBacktrace(crash_frames, crash_frames_count, stack_desc,
+        zwMobileGuardFormatBacktrace(crash_frames, crash_frames_count, stack_desc,
                                    sizeof(stack_desc));
         safe_write_str(fd, stack_desc);
         safe_write_str(fd, "\n");
@@ -263,10 +263,10 @@ static void dump_to_file(const char *crash_type, const char *reason,
 extern "C" std::type_info *__cxa_current_exception_type();
 
 // --- Terminate 拦截器 (C++ 级未捕获异常句柄) ---
-static void ZWCADGuard_TerminateHandler(void) {
+static void zwMobileGuardTerminateHandler(void) {
     void *crash_frames[MAX_STACK_FRAMES];
     int crash_frames_count =
-    ZWCADGuard_CaptureBacktrace(crash_frames, MAX_STACK_FRAMES);
+    zwMobileGuardCaptureBacktrace(crash_frames, MAX_STACK_FRAMES);
     
     char reason_buf[256] = {0};
     const char *exception_type_name = "Unknown C++ Exception";
@@ -274,7 +274,7 @@ static void ZWCADGuard_TerminateHandler(void) {
     // 利用 __cxa_current_exception_type() 动态获取异常类型
     std::type_info *tinfo = __cxa_current_exception_type();
     if (tinfo && tinfo->name()) {
-        char *demangled = ZWCADGuard_Demangle(tinfo->name());
+        char *demangled = zwMobileGuardDemangle(tinfo->name());
         if (demangled) {
             strncpy(reason_buf, demangled, sizeof(reason_buf) - 1);
             free(demangled);
@@ -316,10 +316,10 @@ static void ZWCADGuard_TerminateHandler(void) {
 }
 
 // --- POSIX 信号拦截器 (操作系统底层硬件/系统级崩溃) ---
-static void ZWCADGuard_SignalHandler(int sig, siginfo_t *info, void *context) {
+static void zwMobileGuardSignalHandler(int sig, siginfo_t *info, void *context) {
     void *crash_frames[MAX_STACK_FRAMES];
     int crash_frames_count =
-    ZWCADGuard_CaptureBacktrace(crash_frames, MAX_STACK_FRAMES);
+    zwMobileGuardCaptureBacktrace(crash_frames, MAX_STACK_FRAMES);
     
     // 构造崩溃原因
     char reason[128];
@@ -344,9 +344,21 @@ static void ZWCADGuard_SignalHandler(int sig, siginfo_t *info, void *context) {
     }
 }
 
+// 清空活跃图纸数据
+static void clear_active_drawing_internal(void) {
+    memset(g_active_drawing.name, 0, sizeof(g_active_drawing.name));
+    memset(g_active_drawing.path, 0, sizeof(g_active_drawing.path));
+    memset(g_active_drawing.hash, 0, sizeof(g_active_drawing.hash));
+    memset(g_active_drawing.file_id, 0, sizeof(g_active_drawing.file_id));
+    memset(g_active_drawing.project_id, 0, sizeof(g_active_drawing.project_id));
+    memset(g_active_drawing.project_name, 0, sizeof(g_active_drawing.project_name));
+    g_active_drawing.size = 0;
+    g_active_drawing.is_active = false;
+}
+
 // --- SDK 对外 C API 实现 ---
 
-extern "C" int ZWCADGuard_Init(const char *log_dir) {
+extern "C" int zwMobileGuardInit(const char *log_dir) {
     if (g_sdk_config.is_initialized) {
         return 0;
     }
@@ -367,7 +379,7 @@ extern "C" int ZWCADGuard_Init(const char *log_dir) {
     
     // 1. 设置 C++ std::terminate 拦截器
     g_sdk_config.original_terminate_handler =
-    std::set_terminate(ZWCADGuard_TerminateHandler);
+    std::set_terminate(zwMobileGuardTerminateHandler);
     
     // 2. 注册 POSIX 信号处理器，对 SIGSEGV, SIGABRT 等硬件/物理崩溃进行兜底
     int signals_to_catch[] = {SIGSEGV, SIGABRT, SIGILL, SIGFPE, SIGBUS};
@@ -375,7 +387,7 @@ extern "C" int ZWCADGuard_Init(const char *log_dir) {
     
     struct sigaction sa;
     memset(&sa, 0, sizeof(sa));
-    sa.sa_sigaction = ZWCADGuard_SignalHandler;
+    sa.sa_sigaction = zwMobileGuardSignalHandler;
     sa.sa_flags = SA_SIGINFO | SA_ONSTACK; // 使用备用信号栈防栈溢出
     sigemptyset(&sa.sa_mask);
     
@@ -388,23 +400,12 @@ extern "C" int ZWCADGuard_Init(const char *log_dir) {
     return 0;
 }
 
-extern "C" void ZWCADGuard_SetActiveDrawing(const char *name, const char *path,
-                                            long size, const char *hash) {
-    ZWCADGuard_SetActiveDrawingContext(name, path, size, hash, nullptr, nullptr,
-                                       nullptr);
-}
-
-extern "C" void ZWCADGuard_SetActiveDrawingContext(
+extern "C" void zwMobileGuardSetActiveDrawingContext(
                                                    const char *name, const char *path, long size, const char *hash,
                                                    const char *file_id, const char *project_id, const char *project_name) {
     pthread_mutex_lock(&g_active_drawing.mutex);
-    memset(g_active_drawing.name, 0, sizeof(g_active_drawing.name));
-    memset(g_active_drawing.path, 0, sizeof(g_active_drawing.path));
-    memset(g_active_drawing.hash, 0, sizeof(g_active_drawing.hash));
-    memset(g_active_drawing.file_id, 0, sizeof(g_active_drawing.file_id));
-    memset(g_active_drawing.project_id, 0, sizeof(g_active_drawing.project_id));
-    memset(g_active_drawing.project_name, 0,
-           sizeof(g_active_drawing.project_name));
+    // 绑定图纸时，清空历史数据
+    clear_active_drawing_internal();
     if (name)
         strncpy(g_active_drawing.name, name, sizeof(g_active_drawing.name) - 1);
     if (path)
@@ -425,21 +426,13 @@ extern "C" void ZWCADGuard_SetActiveDrawingContext(
     pthread_mutex_unlock(&g_active_drawing.mutex);
 }
 
-extern "C" void ZWCADGuard_ClearActiveDrawing(void) {
+extern "C" void zwMobileGuardClearActiveDrawing(void) {
     pthread_mutex_lock(&g_active_drawing.mutex);
-    memset(g_active_drawing.name, 0, sizeof(g_active_drawing.name));
-    memset(g_active_drawing.path, 0, sizeof(g_active_drawing.path));
-    memset(g_active_drawing.hash, 0, sizeof(g_active_drawing.hash));
-    memset(g_active_drawing.file_id, 0, sizeof(g_active_drawing.file_id));
-    memset(g_active_drawing.project_id, 0, sizeof(g_active_drawing.project_id));
-    memset(g_active_drawing.project_name, 0,
-           sizeof(g_active_drawing.project_name));
-    g_active_drawing.size = 0;
-    g_active_drawing.is_active = false;
+    clear_active_drawing_internal();
     pthread_mutex_unlock(&g_active_drawing.mutex);
 }
 
-extern "C" void ZWCADGuard_AddBreadcrumb(const char *category,
+extern "C" void zwMobileGuardAddBreadcrumb(const char *category,
                                          const char *action,
                                          const char *details) {
     pthread_mutex_lock(&g_breadCrumbs.mutex);
@@ -473,15 +466,15 @@ extern "C" void ZWCADGuard_AddBreadcrumb(const char *category,
     pthread_mutex_unlock(&g_breadCrumbs.mutex);
 }
 
-extern "C" void ZWCADGuard_SimulateCrashDump(const char *message) {
+extern "C" void zwMobileGuardSimulateCrashDump(const char *message) {
     void *crash_frames[MAX_STACK_FRAMES];
     int crash_frames_count =
-    ZWCADGuard_CaptureBacktrace(crash_frames, MAX_STACK_FRAMES);
+    zwMobileGuardCaptureBacktrace(crash_frames, MAX_STACK_FRAMES);
     dump_to_file("Manual Simulated Crash (Testing)", message, crash_frames,
                  crash_frames_count);
 }
 
-extern "C" void ZWCADGuard_RecordObjCCrash(const char *name, const char *reason,
+extern "C" void zwMobileGuardRecordObjCCrash(const char *name, const char *reason,
                                            void **frames, int count) {
     char final_reason[512];
     snprintf(final_reason, sizeof(final_reason), "Name: %s, Reason: %s",
@@ -489,7 +482,7 @@ extern "C" void ZWCADGuard_RecordObjCCrash(const char *name, const char *reason,
     dump_to_file("Objective-C Uncaught Exception", final_reason, frames, count);
 }
 
-extern "C" void ZWCADGuard_RecordManagedException(const char *language,
+extern "C" void zwMobileGuardRecordManagedException(const char *language,
                                                   const char *name,
                                                   const char *reason) {
     char final_reason[2048];

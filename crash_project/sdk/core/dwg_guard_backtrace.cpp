@@ -35,7 +35,7 @@ static _Unwind_Reason_Code android_unwind_callback(struct _Unwind_Context* conte
 }
 #endif
 
-extern "C" int ZWCADGuard_CaptureBacktrace(void** buffer, int max_frames) {
+extern "C" int zwMobileGuardCaptureBacktrace(void** buffer, int max_frames) {
     if (max_frames <= 0 || buffer == NULL) {
         return 0;
     }
@@ -54,7 +54,7 @@ extern "C" int ZWCADGuard_CaptureBacktrace(void** buffer, int max_frames) {
 #endif
 }
 
-extern "C" char* ZWCADGuard_Demangle(const char* mangled_name) {
+extern "C" char* zwMobileGuardDemangle(const char* mangled_name) {
     if (mangled_name == NULL) {
         return NULL;
     }
@@ -67,7 +67,7 @@ extern "C" char* ZWCADGuard_Demangle(const char* mangled_name) {
     return strdup(mangled_name);
 }
 
-extern "C" void ZWCADGuard_FormatBacktrace(void** buffer, int frames, char* output_buf, size_t output_size) {
+extern "C" void zwMobileGuardFormatBacktrace(void** buffer, int frames, char* output_buf, size_t output_size) {
     if (buffer == NULL || frames <= 0 || output_buf == NULL || output_size == 0) {
         return;
     }
@@ -93,7 +93,7 @@ extern "C" void ZWCADGuard_FormatBacktrace(void** buffer, int frames, char* outp
             
             if (info.dli_sname != NULL) {
                 // 尝试 C++ 符号反混淆 (Demangle)
-                char* demangled = ZWCADGuard_Demangle(info.dli_sname);
+                char* demangled = zwMobileGuardDemangle(info.dli_sname);
                 int len = snprintf(output_buf + written, output_size - written,
                                    "#%02d: %s + 0x%lx (%s + 0x%lx)\n",
                                    i, lib_name, (unsigned long)offset,

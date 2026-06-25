@@ -1,5 +1,5 @@
 #import "LogReportViewController.h"
-#import "ZWCADGuard.h"
+#import "ZWMobileGuard.h"
 #import "CrashDemoUtil.h"
 #import <Masonry/Masonry.h>
 
@@ -211,7 +211,7 @@
 #pragma mark - Actions
 
 - (void)reloadCrashLogsList {
-    self.crashLogPaths = [[ZWCADGuard sharedInstance] getCrashLogPaths];
+    self.crashLogPaths = [[ZWMobileGuard sharedInstance] getCrashLogPaths];
     [self.tableView reloadData];
 }
 
@@ -241,10 +241,10 @@
 
     [self showLogMessage:@"正在同步崩溃数据到分析看板..."];
 
-    [[ZWCADGuard sharedInstance] uploadCrashLogAtPath:logPath uploadDrawing:uploadAuth completion:^(BOOL success, NSString *message) {
+    [[ZWMobileGuard sharedInstance] uploadCrashLogAtPath:logPath uploadDrawing:uploadAuth completion:^(BOOL success, NSString *message) {
         if (success) {
             [self showLogMessage:message];
-            [[ZWCADGuard sharedInstance] deleteCrashLogAtPath:logPath];
+            [[ZWMobileGuard sharedInstance] deleteCrashLogAtPath:logPath];
             [self reloadCrashLogsList];
         } else {
             [self showLogMessage:[NSString stringWithFormat:@"上报失败: %@", message]];
@@ -254,7 +254,7 @@
 
 - (void)logReportControlCellDidTapClear:(LogReportControlCell *)cell {
     for (NSString *path in self.crashLogPaths) {
-        [[ZWCADGuard sharedInstance] deleteCrashLogAtPath:path];
+        [[ZWMobileGuard sharedInstance] deleteCrashLogAtPath:path];
     }
     [self reloadCrashLogsList];
     [self showLogMessage:@"本地历史崩溃日志已全部清空。"];
@@ -351,7 +351,7 @@
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     if (indexPath.section == 2) {
         NSString *path = self.crashLogPaths[indexPath.row];
-        NSString *content = [[ZWCADGuard sharedInstance] readCrashLogContentAtPath:path];
+        NSString *content = [[ZWMobileGuard sharedInstance] readCrashLogContentAtPath:path];
         [self showLogMessage:content];
     } else {
         [tableView deselectRowAtIndexPath:indexPath animated:NO];

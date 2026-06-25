@@ -18,7 +18,7 @@
 		CC1EF8F52FE7D1CC001FFE9C /* CrashDemoUtil.m in Sources */ = {isa = PBXBuildFile; fileRef = CC1EF8F42FE7D1CC001FFE9C /* CrashDemoUtil.m */; };
 		CC1EF8FA2FE7D1DD001FFE9C /* LogReportViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = CC1EF8F92FE7D1DD001FFE9C /* LogReportViewController.m */; };
 		DE14CFC647DF150828275404 /* libZWCADGuard.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 008DD5BC77CCD53883AA656D /* libZWCADGuard.a */; };
-		DE22CCE2380391F19EA4B8CD /* ZWCADGuard.mm in Sources */ = {isa = PBXBuildFile; fileRef = 019B86DC45114EE39CBCD93F /* ZWCADGuard.mm */; };
+		DE22CCE2380391F19EA4B8CD /* ZWMobileGuard.mm in Sources */ = {isa = PBXBuildFile; fileRef = 019B86DC45114EE39CBCD93F /* ZWMobileGuard.mm */; };
 		F6832C566BF0A9BE1C6192F7 /* Pods_ZWCADGuardDemo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B14E7F247DE0905C6C5FD4F /* Pods_ZWCADGuardDemo.framework */; };
 /* End PBXBuildFile section */
 
@@ -34,7 +34,7 @@
 
 /* Begin PBXFileReference section */
 		008DD5BC77CCD53883AA656D /* libZWCADGuard.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libZWCADGuard.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		019B86DC45114EE39CBCD93F /* ZWCADGuard.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = ZWCADGuard.mm; path = ../../../sdk/ios/ZWCADGuard.mm; sourceTree = "<group>"; };
+		019B86DC45114EE39CBCD93F /* ZWMobileGuard.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = ZWMobileGuard.mm; path = ../../../sdk/ios/ZWMobileGuard.mm; sourceTree = "<group>"; };
 		11EB48354A2ED32DC8468C2A /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		4431D8E6AB5097278DBFD63D /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		5698CB1B5B8969898D85F5AD /* ViewControlle.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ViewControlle.mm; sourceTree = "<group>"; };
@@ -43,7 +43,7 @@
 		8CD81BD43F471E3F5B719E8D /* dwg_guard_backtrace.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = dwg_guard_backtrace.cpp; path = ../../../sdk/core/dwg_guard_backtrace.cpp; sourceTree = "<group>"; };
 		8F69C61A45E28A99C09C28F6 /* ZWCADGuardDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ZWCADGuardDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9001A47F1A3990305E0C29A4 /* dwg_guard_backtrace.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = dwg_guard_backtrace.h; path = ../../../sdk/core/dwg_guard_backtrace.h; sourceTree = "<group>"; };
-		9095ABC2863004BDE240200D /* ZWCADGuard.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ZWCADGuard.h; path = ../../../sdk/ios/ZWCADGuard.h; sourceTree = "<group>"; };
+		9095ABC2863004BDE240200D /* ZWMobileGuard.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ZWMobileGuard.h; path = ../../../sdk/ios/ZWMobileGuard.h; sourceTree = "<group>"; };
 		9B14E7F247DE0905C6C5FD4F /* Pods_ZWCADGuardDemo.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ZWCADGuardDemo.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		A772DA5866197B086AA11988 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		AED5F8CB42B4D66AB6FEB57E /* Pods-ZWCADGuardDemo.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ZWCADGuardDemo.debug.xcconfig"; path = "Target Support Files/Pods-ZWCADGuardDemo/Pods-ZWCADGuardDemo.debug.xcconfig"; sourceTree = "<group>"; };
@@ -147,8 +147,8 @@
 				5A337B3B835A0E5013EC59B6 /* dwg_guard.cpp */,
 				9001A47F1A3990305E0C29A4 /* dwg_guard_backtrace.h */,
 				8CD81BD43F471E3F5B719E8D /* dwg_guard_backtrace.cpp */,
-				9095ABC2863004BDE240200D /* ZWCADGuard.h */,
-				019B86DC45114EE39CBCD93F /* ZWCADGuard.mm */,
+				9095ABC2863004BDE240200D /* ZWMobileGuard.h */,
+				019B86DC45114EE39CBCD93F /* ZWMobileGuard.mm */,
 				DA9C1601313CD3CEA3ED71F5 /* cxa_throw_hook.cpp */,
 			);
 			name = SDK;
@@ -295,7 +295,7 @@
 			files = (
 				7DAD3C5A6D0FD77E325A0B29 /* dwg_guard.cpp in Sources */,
 				517C82244C4403417FCE2A7E /* dwg_guard_backtrace.cpp in Sources */,
-				DE22CCE2380391F19EA4B8CD /* ZWCADGuard.mm in Sources */,
+				DE22CCE2380391F19EA4B8CD /* ZWMobileGuard.mm in Sources */,
 				2B09A0A1E54572A68D76384C /* cxa_throw_hook.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
