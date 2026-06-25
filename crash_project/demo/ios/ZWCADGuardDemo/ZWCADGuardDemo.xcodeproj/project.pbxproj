@@ -1,0 +1,528 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 50;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		163C5744708D24EDFBABC380 /* ViewControlle.mm in Sources */ = {isa = PBXBuildFile; fileRef = 5698CB1B5B8969898D85F5AD /* ViewControlle.mm */; };
+		2B09A0A1E54572A68D76384C /* cxa_throw_hook.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DA9C1601313CD3CEA3ED71F5 /* cxa_throw_hook.cpp */; };
+		4EACD81ED8FF5AF36219F4ED /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = A772DA5866197B086AA11988 /* main.m */; };
+		517C82244C4403417FCE2A7E /* dwg_guard_backtrace.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8CD81BD43F471E3F5B719E8D /* dwg_guard_backtrace.cpp */; };
+		555A78ABA5B4FE47FE79AA1D /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 4431D8E6AB5097278DBFD63D /* AppDelegate.m */; };
+		7DAD3C5A6D0FD77E325A0B29 /* dwg_guard.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5A337B3B835A0E5013EC59B6 /* dwg_guard.cpp */; };
+		CC1EF8EE2FE7C5D4001FFE9C /* AppTabControllerFactory.m in Sources */ = {isa = PBXBuildFile; fileRef = CC1EF8ED2FE7C5D4001FFE9C /* AppTabControllerFactory.m */; };
+		CC1EF8F12FE7C5DF001FFE9C /* StaticTabBarController.m in Sources */ = {isa = PBXBuildFile; fileRef = CC1EF8F02FE7C5DF001FFE9C /* StaticTabBarController.m */; };
+		CC1EF8F52FE7D1CC001FFE9C /* CrashDemoUtil.m in Sources */ = {isa = PBXBuildFile; fileRef = CC1EF8F42FE7D1CC001FFE9C /* CrashDemoUtil.m */; };
+		CC1EF8FA2FE7D1DD001FFE9C /* LogReportViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = CC1EF8F92FE7D1DD001FFE9C /* LogReportViewController.m */; };
+		DE14CFC647DF150828275404 /* libZWCADGuard.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 008DD5BC77CCD53883AA656D /* libZWCADGuard.a */; };
+		DE22CCE2380391F19EA4B8CD /* ZWCADGuard.mm in Sources */ = {isa = PBXBuildFile; fileRef = 019B86DC45114EE39CBCD93F /* ZWCADGuard.mm */; };
+		F6832C566BF0A9BE1C6192F7 /* Pods_ZWCADGuardDemo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B14E7F247DE0905C6C5FD4F /* Pods_ZWCADGuardDemo.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		C543068548BBAC1AC438513C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8F747C15B6898555EE833EB3 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 77370023B288223E20CA060B;
+			remoteInfo = ZWCADGuard;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		008DD5BC77CCD53883AA656D /* libZWCADGuard.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libZWCADGuard.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		019B86DC45114EE39CBCD93F /* ZWCADGuard.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = ZWCADGuard.mm; path = ../../../sdk/ios/ZWCADGuard.mm; sourceTree = "<group>"; };
+		11EB48354A2ED32DC8468C2A /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		4431D8E6AB5097278DBFD63D /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		5698CB1B5B8969898D85F5AD /* ViewControlle.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ViewControlle.mm; sourceTree = "<group>"; };
+		5A337B3B835A0E5013EC59B6 /* dwg_guard.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = dwg_guard.cpp; path = ../../../sdk/core/dwg_guard.cpp; sourceTree = "<group>"; };
+		70681454C133F9ADD59E1230 /* dwg_guard.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = dwg_guard.h; path = ../../../sdk/core/dwg_guard.h; sourceTree = "<group>"; };
+		8CD81BD43F471E3F5B719E8D /* dwg_guard_backtrace.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = dwg_guard_backtrace.cpp; path = ../../../sdk/core/dwg_guard_backtrace.cpp; sourceTree = "<group>"; };
+		8F69C61A45E28A99C09C28F6 /* ZWCADGuardDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ZWCADGuardDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		9001A47F1A3990305E0C29A4 /* dwg_guard_backtrace.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = dwg_guard_backtrace.h; path = ../../../sdk/core/dwg_guard_backtrace.h; sourceTree = "<group>"; };
+		9095ABC2863004BDE240200D /* ZWCADGuard.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ZWCADGuard.h; path = ../../../sdk/ios/ZWCADGuard.h; sourceTree = "<group>"; };
+		9B14E7F247DE0905C6C5FD4F /* Pods_ZWCADGuardDemo.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ZWCADGuardDemo.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		A772DA5866197B086AA11988 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		AED5F8CB42B4D66AB6FEB57E /* Pods-ZWCADGuardDemo.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ZWCADGuardDemo.debug.xcconfig"; path = "Target Support Files/Pods-ZWCADGuardDemo/Pods-ZWCADGuardDemo.debug.xcconfig"; sourceTree = "<group>"; };
+		C44EC1347FE05C4B1B62C5D9 /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
+		CC1EF8EC2FE7C5D4001FFE9C /* AppTabControllerFactory.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppTabControllerFactory.h; sourceTree = "<group>"; };
+		CC1EF8ED2FE7C5D4001FFE9C /* AppTabControllerFactory.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppTabControllerFactory.m; sourceTree = "<group>"; };
+		CC1EF8EF2FE7C5DF001FFE9C /* StaticTabBarController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StaticTabBarController.h; sourceTree = "<group>"; };
+		CC1EF8F02FE7C5DF001FFE9C /* StaticTabBarController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = StaticTabBarController.m; sourceTree = "<group>"; };
+		CC1EF8F32FE7D1CC001FFE9C /* CrashDemoUtil.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CrashDemoUtil.h; sourceTree = "<group>"; };
+		CC1EF8F42FE7D1CC001FFE9C /* CrashDemoUtil.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CrashDemoUtil.m; sourceTree = "<group>"; };
+		CC1EF8F82FE7D1DD001FFE9C /* LogReportViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LogReportViewController.h; sourceTree = "<group>"; };
+		CC1EF8F92FE7D1DD001FFE9C /* LogReportViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LogReportViewController.m; sourceTree = "<group>"; };
+		DA9C1601313CD3CEA3ED71F5 /* cxa_throw_hook.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = cxa_throw_hook.cpp; path = ../../../sdk/ios/cxa_throw_hook.cpp; sourceTree = "<group>"; };
+		E153575F96EAA4AA0640F006 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		E8D0484031E688AC32E51593 /* Pods-ZWCADGuardDemo.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ZWCADGuardDemo.release.xcconfig"; path = "Target Support Files/Pods-ZWCADGuardDemo/Pods-ZWCADGuardDemo.release.xcconfig"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		0E11BAECE2F0F99D25855549 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DE14CFC647DF150828275404 /* libZWCADGuard.a in Frameworks */,
+				F6832C566BF0A9BE1C6192F7 /* Pods_ZWCADGuardDemo.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		63B3855E81FDA09D482A9CE4 = {
+			isa = PBXGroup;
+			children = (
+				FD87A47350CEB063C64DC347 /* SDK */,
+				C98E7915FFE8383B9BA98844 /* ZWCADGuardDemo */,
+				E962EB3E5D42BCC1729EE17F /* Products */,
+				C1B4A28E95A7D67B5C79BC37 /* Pods */,
+				6CD13FEE1EB9D82D7C7307BA /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		6CD13FEE1EB9D82D7C7307BA /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				9B14E7F247DE0905C6C5FD4F /* Pods_ZWCADGuardDemo.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		C1B4A28E95A7D67B5C79BC37 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				AED5F8CB42B4D66AB6FEB57E /* Pods-ZWCADGuardDemo.debug.xcconfig */,
+				E8D0484031E688AC32E51593 /* Pods-ZWCADGuardDemo.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
+		C98E7915FFE8383B9BA98844 /* ZWCADGuardDemo */ = {
+			isa = PBXGroup;
+			children = (
+				CC1EF8F22FE7D180001FFE9C /* Demo */,
+				CC1EF8EF2FE7C5DF001FFE9C /* StaticTabBarController.h */,
+				CC1EF8F02FE7C5DF001FFE9C /* StaticTabBarController.m */,
+				CC1EF8EC2FE7C5D4001FFE9C /* AppTabControllerFactory.h */,
+				CC1EF8ED2FE7C5D4001FFE9C /* AppTabControllerFactory.m */,
+				A772DA5866197B086AA11988 /* main.m */,
+				11EB48354A2ED32DC8468C2A /* AppDelegate.h */,
+				4431D8E6AB5097278DBFD63D /* AppDelegate.m */,
+				E153575F96EAA4AA0640F006 /* Info.plist */,
+			);
+			path = ZWCADGuardDemo;
+			sourceTree = "<group>";
+		};
+		CC1EF8F22FE7D180001FFE9C /* Demo */ = {
+			isa = PBXGroup;
+			children = (
+				C44EC1347FE05C4B1B62C5D9 /* ViewController.h */,
+				5698CB1B5B8969898D85F5AD /* ViewControlle.mm */,
+				CC1EF8F32FE7D1CC001FFE9C /* CrashDemoUtil.h */,
+				CC1EF8F42FE7D1CC001FFE9C /* CrashDemoUtil.m */,
+				CC1EF8F82FE7D1DD001FFE9C /* LogReportViewController.h */,
+				CC1EF8F92FE7D1DD001FFE9C /* LogReportViewController.m */,
+			);
+			path = Demo;
+			sourceTree = "<group>";
+		};
+		E962EB3E5D42BCC1729EE17F /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				008DD5BC77CCD53883AA656D /* libZWCADGuard.a */,
+				8F69C61A45E28A99C09C28F6 /* ZWCADGuardDemo.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		FD87A47350CEB063C64DC347 /* SDK */ = {
+			isa = PBXGroup;
+			children = (
+				70681454C133F9ADD59E1230 /* dwg_guard.h */,
+				5A337B3B835A0E5013EC59B6 /* dwg_guard.cpp */,
+				9001A47F1A3990305E0C29A4 /* dwg_guard_backtrace.h */,
+				8CD81BD43F471E3F5B719E8D /* dwg_guard_backtrace.cpp */,
+				9095ABC2863004BDE240200D /* ZWCADGuard.h */,
+				019B86DC45114EE39CBCD93F /* ZWCADGuard.mm */,
+				DA9C1601313CD3CEA3ED71F5 /* cxa_throw_hook.cpp */,
+			);
+			name = SDK;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		12E5F27CF34CF381AE05C6CE /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		4463214C206F029C3B6CF93B /* ZWCADGuardDemo */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7D5CC26B5D8184F60C162E3E /* Build configuration list for PBXNativeTarget "ZWCADGuardDemo" */;
+			buildPhases = (
+				FF477A28B0D2528C360761A9 /* [CP] Check Pods Manifest.lock */,
+				19DEBD7C556826355AD3BAB0 /* Sources */,
+				0E11BAECE2F0F99D25855549 /* Frameworks */,
+				A1C095E80DD6ECE2EEB4778A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				4F47FC75E4C4B853D07E29AD /* PBXTargetDependency */,
+			);
+			name = ZWCADGuardDemo;
+			productName = ZWCADGuardDemo;
+			productReference = 8F69C61A45E28A99C09C28F6 /* ZWCADGuardDemo.app */;
+			productType = "com.apple.product-type.application";
+		};
+		77370023B288223E20CA060B /* ZWCADGuard */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7ACE1450422CBF167204D3F6 /* Build configuration list for PBXNativeTarget "ZWCADGuard" */;
+			buildPhases = (
+				12E5F27CF34CF381AE05C6CE /* Headers */,
+				801861D7F97C2EC5366214D7 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ZWCADGuard;
+			productName = ZWCADGuard;
+			productReference = 008DD5BC77CCD53883AA656D /* libZWCADGuard.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		8F747C15B6898555EE833EB3 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 1100;
+				TargetAttributes = {
+					4463214C206F029C3B6CF93B = {
+						CreatedOnToolsVersion = 11.0;
+						ProvisioningStyle = Automatic;
+					};
+					77370023B288223E20CA060B = {
+						CreatedOnToolsVersion = 11.0;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 7493F52DB00ACD6B08FB8470 /* Build configuration list for PBXProject "ZWCADGuardDemo" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 63B3855E81FDA09D482A9CE4;
+			productRefGroup = E962EB3E5D42BCC1729EE17F /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				77370023B288223E20CA060B /* ZWCADGuard */,
+				4463214C206F029C3B6CF93B /* ZWCADGuardDemo */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A1C095E80DD6ECE2EEB4778A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		FF477A28B0D2528C360761A9 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-ZWCADGuardDemo-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		19DEBD7C556826355AD3BAB0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CC1EF8F52FE7D1CC001FFE9C /* CrashDemoUtil.m in Sources */,
+				CC1EF8FA2FE7D1DD001FFE9C /* LogReportViewController.m in Sources */,
+				CC1EF8F12FE7C5DF001FFE9C /* StaticTabBarController.m in Sources */,
+				CC1EF8EE2FE7C5D4001FFE9C /* AppTabControllerFactory.m in Sources */,
+				4EACD81ED8FF5AF36219F4ED /* main.m in Sources */,
+				555A78ABA5B4FE47FE79AA1D /* AppDelegate.m in Sources */,
+				163C5744708D24EDFBABC380 /* ViewControlle.mm in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		801861D7F97C2EC5366214D7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7DAD3C5A6D0FD77E325A0B29 /* dwg_guard.cpp in Sources */,
+				517C82244C4403417FCE2A7E /* dwg_guard_backtrace.cpp in Sources */,
+				DE22CCE2380391F19EA4B8CD /* ZWCADGuard.mm in Sources */,
+				2B09A0A1E54572A68D76384C /* cxa_throw_hook.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		4F47FC75E4C4B853D07E29AD /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 77370023B288223E20CA060B /* ZWCADGuard */;
+			targetProxy = C543068548BBAC1AC438513C /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		2E74115153FCF41B867A5335 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					../../../sdk/core,
+				);
+				PRODUCT_NAME = ZWCADGuard;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		35D3DE83F11B11CACB01E1F7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_REPRODUCER = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+			};
+			name = Debug;
+		};
+		3A91EE24BEB74ABDF40CB166 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					../../../sdk/core,
+				);
+				PRODUCT_NAME = ZWCADGuard;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		5FFE82796F2234EF0E688787 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = E8D0484031E688AC32E51593 /* Pods-ZWCADGuardDemo.release.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Distribution";
+				CODE_SIGN_STYLE = Automatic;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					../../../sdk/core,
+					../../../sdk/ios,
+				);
+				INFOPLIST_FILE = ZWCADGuardDemo/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.zwsoft.zwcadguard.ZWCADGuardDemo;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		B5B02B35CDE72091C790C204 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = AED5F8CB42B4D66AB6FEB57E /* Pods-ZWCADGuardDemo.debug.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = VN448C266C;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					../../../sdk/core,
+					../../../sdk/ios,
+				);
+				INFOPLIST_FILE = ZWCADGuardDemo/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.zwsoft.zwcadguard.ZWCADGuardDemo;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		BD996277FE25149CE4D375A7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_REPRODUCER = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		7493F52DB00ACD6B08FB8470 /* Build configuration list for PBXProject "ZWCADGuardDemo" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				35D3DE83F11B11CACB01E1F7 /* Debug */,
+				BD996277FE25149CE4D375A7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		7ACE1450422CBF167204D3F6 /* Build configuration list for PBXNativeTarget "ZWCADGuard" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2E74115153FCF41B867A5335 /* Debug */,
+				3A91EE24BEB74ABDF40CB166 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		7D5CC26B5D8184F60C162E3E /* Build configuration list for PBXNativeTarget "ZWCADGuardDemo" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B5B02B35CDE72091C790C204 /* Debug */,
+				5FFE82796F2234EF0E688787 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 8F747C15B6898555EE833EB3 /* Project object */;
+}
