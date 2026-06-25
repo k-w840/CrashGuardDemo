@@ -18,6 +18,11 @@
 #include <TargetConditionals.h>
 #endif
 
+// iOS 侧在初始化时显式安装 __cxa_throw Mach-O rebinding。
+#ifdef __APPLE__
+extern "C" void zwMobileGuardInstallCxaThrowHook(void);
+#endif
+
 // 最大堆栈深度
 #define MAX_STACK_FRAMES 64
 // 操作路径最大数量
@@ -25,31 +30,31 @@
 
 // --- 线程局部变量，保存最近一次 throw 的异常现场 ---
 struct ThreadExceptionInfo {
-    void *backtrace_buffer[MAX_STACK_FRAMES];
-    int frames_count;
-    char exception_type[128];
-    bool has_exception;
+    void *backtraceBuffer[MAX_STACK_FRAMES];
+    int framesCount;
+    char exceptionType[128];
+    bool hasException;
 };
 
 // 使用 thread_local 保存每个线程的最新 throw 堆栈
-static thread_local ThreadExceptionInfo g_thread_exception = {{0}, 0, {0}, false};
+static thread_local ThreadExceptionInfo g_threadException = {{0}, 0, {0}, false};
 
 // 外部声明，用于在 hook 中填充 TLS 栈
 extern "C" void zwMobileGuardRecordThrowState(void *thrown_exception, std::type_info *tinfo) {
-    g_thread_exception.frames_count = zwMobileGuardCaptureBacktrace(g_thread_exception.backtrace_buffer, MAX_STACK_FRAMES);
-    g_thread_exception.has_exception = true;
+    g_threadException.framesCount = zwMobileGuardCaptureBacktrace(g_threadException.backtraceBuffer, MAX_STACK_FRAMES);
+    g_threadException.hasException = true;
     if (tinfo && tinfo->name()) {
         char *demangled = zwMobileGuardDemangle(tinfo->name());
         if (demangled) {
-            strncpy(g_thread_exception.exception_type, demangled,
-                    sizeof(g_thread_exception.exception_type) - 1);
+            strncpy(g_threadException.exceptionType, demangled,
+                    sizeof(g_threadException.exceptionType) - 1);
             free(demangled);
         } else {
-            strncpy(g_thread_exception.exception_type, tinfo->name(),
-                    sizeof(g_thread_exception.exception_type) - 1);
+            strncpy(g_threadException.exceptionType, tinfo->name(),
+                    sizeof(g_threadException.exceptionType) - 1);
         }
     } else {
-        strcpy(g_thread_exception.exception_type, "Unknown Type");
+        strcpy(g_threadException.exceptionType, "Unknown Type");
     }
 }
 
@@ -61,6 +66,7 @@ struct BreadCrumb {
     char details[256]; // 详情
 };
 
+// 环形存储辅助数据结构
 static struct {
     BreadCrumb items[MAX_BREADCRUMBS];
     int head;
@@ -206,16 +212,16 @@ static void writeCrashReport(int fd, const char *crash_type, const char *reason,
     safeWriteStr(fd, "\n");
     
     // 1. 原始 throw 堆栈（如果有）
-    if (g_thread_exception.has_exception) {
+    if (g_threadException.hasException) {
         safeWriteStr(fd,
                        "[Original Throw Stack Trace] (Captured at __cxa_throw):\n");
         safeWriteStr(fd, "  Exception Class: ");
-        safeWriteStr(fd, g_thread_exception.exception_type);
+        safeWriteStr(fd, g_threadException.exceptionType);
         safeWriteStr(fd, "\n");
         
         char stack_desc[2048];
-        zwMobileGuardFormatBacktrace(g_thread_exception.backtrace_buffer,
-                                     g_thread_exception.frames_count, stack_desc,
+        zwMobileGuardFormatBacktrace(g_threadException.backtraceBuffer,
+                                     g_threadException.framesCount, stack_desc,
                                      sizeof(stack_desc));
         safeWriteStr(fd, stack_desc);
         safeWriteStr(fd, "\n");
@@ -405,6 +411,10 @@ extern "C" int zwMobileGuardInit(const char *logDir) {
     
     // 设置 std::terminate 拦截器
     g_sdkConfig.originalTerminateHandler = std::set_terminate(zwMobileGuardTerminateHandler);
+
+#ifdef __APPLE__
+    zwMobileGuardInstallCxaThrowHook();
+#endif
     
     // 注册 POSIX 信号处理器
     // 只处理这五个即可，其余信号为系统层面不能捕获，或者是用户主动操作的正常信号
