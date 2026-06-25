@@ -1,5 +1,5 @@
 #import "ZWMobileGuard.h"
-#include "dwg_guard.h"
+#include "dwgGuard.h"
 #import <UIKit/UIKit.h>
 
 extern "C" void zwMobileGuardRecordObjCCrash(const char* name, const char* reason, void** frames, int count);

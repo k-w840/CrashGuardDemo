@@ -10,9 +10,9 @@
 		163C5744708D24EDFBABC380 /* ViewControlle.mm in Sources */ = {isa = PBXBuildFile; fileRef = 5698CB1B5B8969898D85F5AD /* ViewControlle.mm */; };
 		2B09A0A1E54572A68D76384C /* cxa_throw_hook.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DA9C1601313CD3CEA3ED71F5 /* cxa_throw_hook.cpp */; };
 		4EACD81ED8FF5AF36219F4ED /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = A772DA5866197B086AA11988 /* main.m */; };
-		517C82244C4403417FCE2A7E /* dwg_guard_backtrace.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8CD81BD43F471E3F5B719E8D /* dwg_guard_backtrace.cpp */; };
+		517C82244C4403417FCE2A7E /* dwgGuardBacktrace.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8CD81BD43F471E3F5B719E8D /* dwgGuardBacktrace.cpp */; };
 		555A78ABA5B4FE47FE79AA1D /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 4431D8E6AB5097278DBFD63D /* AppDelegate.m */; };
-		7DAD3C5A6D0FD77E325A0B29 /* dwg_guard.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5A337B3B835A0E5013EC59B6 /* dwg_guard.cpp */; };
+		7DAD3C5A6D0FD77E325A0B29 /* dwgGuard.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5A337B3B835A0E5013EC59B6 /* dwgGuard.cpp */; };
 		CC1EF8EE2FE7C5D4001FFE9C /* AppTabControllerFactory.m in Sources */ = {isa = PBXBuildFile; fileRef = CC1EF8ED2FE7C5D4001FFE9C /* AppTabControllerFactory.m */; };
 		CC1EF8F12FE7C5DF001FFE9C /* StaticTabBarController.m in Sources */ = {isa = PBXBuildFile; fileRef = CC1EF8F02FE7C5DF001FFE9C /* StaticTabBarController.m */; };
 		CC1EF8F52FE7D1CC001FFE9C /* CrashDemoUtil.m in Sources */ = {isa = PBXBuildFile; fileRef = CC1EF8F42FE7D1CC001FFE9C /* CrashDemoUtil.m */; };
@@ -38,11 +38,11 @@
 		11EB48354A2ED32DC8468C2A /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		4431D8E6AB5097278DBFD63D /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		5698CB1B5B8969898D85F5AD /* ViewControlle.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ViewControlle.mm; sourceTree = "<group>"; };
-		5A337B3B835A0E5013EC59B6 /* dwg_guard.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = dwg_guard.cpp; path = ../../../sdk/core/dwg_guard.cpp; sourceTree = "<group>"; };
-		70681454C133F9ADD59E1230 /* dwg_guard.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = dwg_guard.h; path = ../../../sdk/core/dwg_guard.h; sourceTree = "<group>"; };
-		8CD81BD43F471E3F5B719E8D /* dwg_guard_backtrace.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = dwg_guard_backtrace.cpp; path = ../../../sdk/core/dwg_guard_backtrace.cpp; sourceTree = "<group>"; };
+		5A337B3B835A0E5013EC59B6 /* dwgGuard.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = dwgGuard.cpp; path = ../../../sdk/core/dwgGuard.cpp; sourceTree = "<group>"; };
+		70681454C133F9ADD59E1230 /* dwgGuard.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = dwgGuard.h; path = ../../../sdk/core/dwgGuard.h; sourceTree = "<group>"; };
+		8CD81BD43F471E3F5B719E8D /* dwgGuardBacktrace.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = dwgGuardBacktrace.cpp; path = ../../../sdk/core/dwgGuardBacktrace.cpp; sourceTree = "<group>"; };
 		8F69C61A45E28A99C09C28F6 /* ZWCADGuardDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ZWCADGuardDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		9001A47F1A3990305E0C29A4 /* dwg_guard_backtrace.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = dwg_guard_backtrace.h; path = ../../../sdk/core/dwg_guard_backtrace.h; sourceTree = "<group>"; };
+		9001A47F1A3990305E0C29A4 /* dwgGuardBacktrace.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = dwgGuardBacktrace.h; path = ../../../sdk/core/dwgGuardBacktrace.h; sourceTree = "<group>"; };
 		9095ABC2863004BDE240200D /* ZWMobileGuard.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ZWMobileGuard.h; path = ../../../sdk/ios/ZWMobileGuard.h; sourceTree = "<group>"; };
 		9B14E7F247DE0905C6C5FD4F /* Pods_ZWCADGuardDemo.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ZWCADGuardDemo.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		A772DA5866197B086AA11988 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
@@ -143,10 +143,10 @@
 		FD87A47350CEB063C64DC347 /* SDK */ = {
 			isa = PBXGroup;
 			children = (
-				70681454C133F9ADD59E1230 /* dwg_guard.h */,
-				5A337B3B835A0E5013EC59B6 /* dwg_guard.cpp */,
-				9001A47F1A3990305E0C29A4 /* dwg_guard_backtrace.h */,
-				8CD81BD43F471E3F5B719E8D /* dwg_guard_backtrace.cpp */,
+				70681454C133F9ADD59E1230 /* dwgGuard.h */,
+				5A337B3B835A0E5013EC59B6 /* dwgGuard.cpp */,
+				9001A47F1A3990305E0C29A4 /* dwgGuardBacktrace.h */,
+				8CD81BD43F471E3F5B719E8D /* dwgGuardBacktrace.cpp */,
 				9095ABC2863004BDE240200D /* ZWMobileGuard.h */,
 				019B86DC45114EE39CBCD93F /* ZWMobileGuard.mm */,
 				DA9C1601313CD3CEA3ED71F5 /* cxa_throw_hook.cpp */,
@@ -293,8 +293,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7DAD3C5A6D0FD77E325A0B29 /* dwg_guard.cpp in Sources */,
-				517C82244C4403417FCE2A7E /* dwg_guard_backtrace.cpp in Sources */,
+				7DAD3C5A6D0FD77E325A0B29 /* dwgGuard.cpp in Sources */,
+				517C82244C4403417FCE2A7E /* dwgGuardBacktrace.cpp in Sources */,
 				DE22CCE2380391F19EA4B8CD /* ZWMobileGuard.mm in Sources */,
 				2B09A0A1E54572A68D76384C /* cxa_throw_hook.cpp in Sources */,
 			);

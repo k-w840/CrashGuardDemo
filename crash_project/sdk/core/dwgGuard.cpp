@@ -1,5 +1,5 @@
-#include "dwg_guard.h"
-#include "dwg_guard_backtrace.h"
+#include "dwgGuard.h"
+#include "dwgGuardBacktrace.h"
 #include <dlfcn.h>
 #include <exception>
 #include <fcntl.h>
@@ -18,7 +18,7 @@
 #include <TargetConditionals.h>
 #endif
 
-// iOS 侧在初始化时显式安装 __cxa_throw Mach-O rebinding。
+// iOS 在初始化时显式安装 __cxa_throw Mach-O rebinding
 #ifdef __APPLE__
 extern "C" void zwMobileGuardInstallCxaThrowHook(void);
 #endif
@@ -32,7 +32,7 @@ extern "C" void zwMobileGuardInstallCxaThrowHook(void);
 struct ThreadExceptionInfo {
     void *backtraceBuffer[MAX_STACK_FRAMES];
     int framesCount;
-    char exceptionType[128];
+    char exceptionType[256];
     bool hasException;
 };
 
@@ -46,12 +46,10 @@ extern "C" void zwMobileGuardRecordThrowState(void *thrown_exception, std::type_
     if (tinfo && tinfo->name()) {
         char *demangled = zwMobileGuardDemangle(tinfo->name());
         if (demangled) {
-            strncpy(g_threadException.exceptionType, demangled,
-                    sizeof(g_threadException.exceptionType) - 1);
+            strncpy(g_threadException.exceptionType, demangled, sizeof(g_threadException.exceptionType) - 1);
             free(demangled);
         } else {
-            strncpy(g_threadException.exceptionType, tinfo->name(),
-                    sizeof(g_threadException.exceptionType) - 1);
+            strncpy(g_threadException.exceptionType, tinfo->name(), sizeof(g_threadException.exceptionType) - 1);
         }
     } else {
         strcpy(g_threadException.exceptionType, "Unknown Type");
@@ -76,13 +74,13 @@ static struct {
 
 // 图纸信息
 static struct {
-    char name[128];
-    char path[256];
+    char name[256];
+    char path[512];
     long size;
     char hash[64];
     char file_id[64];
     char project_id[64];
-    char project_name[128];
+    char project_name[256];
     bool is_active;
     pthread_mutex_t mutex;
 } g_activeDrawing = {{0}, {0}, 0, {0}, {0}, {0}, {0}, false, PTHREAD_MUTEX_INITIALIZER};

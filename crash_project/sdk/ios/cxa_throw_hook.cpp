@@ -139,6 +139,9 @@ static void restoreProtection(void* address, size_t size, int oldProtection) {
 }
 
 static const struct segment_command_64* findSegment64(const struct mach_header_64* header, const char* name) {
+    if (header == nullptr) {
+        return nullptr;
+    }
     const uint8_t* cursor = (const uint8_t*)header + sizeof(struct mach_header_64);
     for (uint32_t i = 0; i < header->ncmds; ++i) {
         const struct load_command* command = (const struct load_command*)cursor;
@@ -154,6 +157,9 @@ static const struct segment_command_64* findSegment64(const struct mach_header_6
 }
 
 static const struct load_command* findCommand(const struct mach_header_64* header, uint32_t commandType) {
+    if (header == nullptr) {
+        return nullptr;
+    }
     const uint8_t* cursor = (const uint8_t*)header + sizeof(struct mach_header_64);
     for (uint32_t i = 0; i < header->ncmds; ++i) {
         const struct load_command* command = (const struct load_command*)cursor;
@@ -229,10 +235,8 @@ static void rebindImage(const struct mach_header* rawHeader, intptr_t slide) {
     }
 
     const struct mach_header_64* header = (const struct mach_header_64*)rawHeader;
-    const struct symtab_command* symtabCommand =
-        (const struct symtab_command*)findCommand(header, LC_SYMTAB);
-    const struct dysymtab_command* dysymtabCommand =
-        (const struct dysymtab_command*)findCommand(header, LC_DYSYMTAB);
+    const struct symtab_command* symtabCommand = (const struct symtab_command*)findCommand(header, LC_SYMTAB);
+    const struct dysymtab_command* dysymtabCommand = (const struct dysymtab_command*)findCommand(header, LC_DYSYMTAB);
     const struct segment_command_64* linkeditSegment = findSegment64(header, SEG_LINKEDIT);
     if (symtabCommand == nullptr || dysymtabCommand == nullptr || linkeditSegment == nullptr) {
         return;
@@ -247,37 +251,39 @@ static void rebindImage(const struct mach_header* rawHeader, intptr_t slide) {
     rebindSegmentSections(findSegment64(header, "__DATA_CONST"), slide, header, symbolTable, stringTable, indirectSymbolTable);
 }
 
+#pragma mark - 动态链接HOOK,拦截并替换所有加载的动态库
 extern "C" void zwMobileGuardInstallCxaThrowHook(void) {
     pthread_mutex_lock(&g_cxaHookMutex);
     if (!g_cxaThrowRebindingInstalled) {
         g_cxaThrowRebindingInstalled = true;
+        // 注册 dyld 镜像加载回调函数
         _dyld_register_func_for_add_image(rebindImage);
     }
     pthread_mutex_unlock(&g_cxaHookMutex);
 }
 
-// weak 符号作为 fallback：静态链接进主二进制时可覆盖部分 __cxa_throw 引用。
+#pragma mark - 静态链接时自动拦截 __cxa_throw
+// 用 weak 避免和其他库符号冲突编译报错
 extern "C" __attribute__((weak, visibility("default")))
-void __cxa_throw(void *thrown_exception,
-                 std::type_info *tinfo,
-                 void (*dest)(void *)) {
-    // 此时栈还没有展开，在此处抓取调用栈
+void __cxa_throw(void *thrown_exception, std::type_info *tinfo, void (*dest)(void *)) {
+    // 此时栈还没有展开，在此处获取调用栈
     zwMobileGuardRecordThrowState(thrown_exception, tinfo);
 
-    // 动态寻找系统的原始 __cxa_throw
-    static CxaThrowType original_cxa_throw = lookupOriginalCxaThrow();
+    // 获取系统的原始 __cxa_throw
+    static CxaThrowType originalCxaThrow = lookupOriginalCxaThrow();
     
-    // 转发异常
-    original_cxa_throw(thrown_exception, tinfo, dest);
-    __builtin_unreachable(); // 标记为不可达，因为 __cxa_throw 是 noreturn 属性
+    // 转发原始异常
+    originalCxaThrow(thrown_exception, tinfo, dest);
+    // 因为 __cxa_throw 是 noreturn，标记为不可达
+    __builtin_unreachable();
 }
 
-// weak fallback，拦截异常重抛 (throw;)
+// 异常重抛，预留扩展，该函数和 __cxa_throw关系紧密，一起重写，避免在安卓等静态链接时符号拉取冲突报错
 extern "C" __attribute__((weak, visibility("default")))
 void __cxa_rethrow() {
     static CxaRethrowType original_cxa_rethrow = lookupOriginalCxaRethrow();
     
     // 转发重抛
     original_cxa_rethrow();
-    __builtin_unreachable(); // noreturn 属性
+    __builtin_unreachable();
 }

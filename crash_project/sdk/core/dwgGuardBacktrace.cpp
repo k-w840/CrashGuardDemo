@@ -1,4 +1,4 @@
-#include "dwg_guard_backtrace.h"
+#include "dwgGuardBacktrace.h"
 #include <dlfcn.h>
 #include <cxxabi.h>
 #include <stdlib.h>
