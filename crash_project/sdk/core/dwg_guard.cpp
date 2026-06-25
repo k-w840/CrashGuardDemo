@@ -1,6 +1,5 @@
 #include "dwg_guard.h"
 #include "dwg_guard_backtrace.h"
-#include <ctime>
 #include <dlfcn.h>
 #include <exception>
 #include <fcntl.h>
@@ -448,11 +447,13 @@ extern "C" void ZWCADGuard_AddBreadcrumb(const char *category,
     // 从头开始存储，存满时覆盖起始位置，head记录最老路径的位置
     int index = (g_breadCrumbs.head + g_breadCrumbs.count) % MAX_BREADCRUMBS;
     if (g_breadCrumbs.count == MAX_BREADCRUMBS) {
-        g_breadCrumbs.head = (g_breadCrumbs.head + 1) % MAX_BREADCRUMBS; // 覆盖最老记录
+        // 缓存已满，覆盖老数据，head指针前移
+        g_breadCrumbs.head = (g_breadCrumbs.head + 1) % MAX_BREADCRUMBS;
     } else {
+        // 存储没满，直接增加计数
         g_breadCrumbs.count++;
     }
-    
+    // 取出当前要写入位置的结构体
     BreadCrumb *b = &g_breadCrumbs.items[index];
     
     // 获取时间戳并转换为本地时间

@@ -1,6 +1,8 @@
 #import <Foundation/Foundation.h>
 
 @interface ZWCADGuard : NSObject
+// 崩溃日志文件路径
+@property(nonatomic, copy, readonly) NSString *logDir;
 
 /**
  * 获取 ZWCADGuard 单例
@@ -8,7 +10,7 @@
 + (instancetype)sharedInstance;
 
 /**
- * 初始化 ZWCADGuard，自动捕获 C++ 未捕获异常、POSIX 信号以及 Objective-C 未捕获异常
+ * 初始化 ZWCADGuard，自动捕获 C++ 未捕获异常、POSIX 信号、 OC 未捕获异常
  */
 - (BOOL)initializeSDK;
 
@@ -45,7 +47,7 @@
 
 /**
  * 记录用户操作埋点
- * 
+ *
  * @param category 事件类别 (如 UI, Draw, View)
  * @param action 具体操作 (如 ClickButton, Zoom, DrawCircle)
  * @param details 详情/附加参数 (如 zoom_scale=1.2)
@@ -81,10 +83,5 @@
  * 删除本地已处理的崩溃日志文件
  */
 - (BOOL)deleteCrashLogAtPath:(NSString *)path;
-
-/**
- * 获取崩溃日志存放目录绝对路径
- */
-- (NSString *)getLogDirectory;
 
 @end

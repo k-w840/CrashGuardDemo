@@ -6,7 +6,7 @@ extern "C" void ZWCADGuard_RecordObjCCrash(const char* name, const char* reason,
 
 // OC 原生异常处理
 static void ZWCADGuard_UncaughtExceptionHandler(NSException *exception) {
-    // 获取崩溃时异常堆栈的返回地址数组
+    // 获取崩溃堆栈的返回地址
     NSArray *callStack = exception.callStackReturnAddresses;
     NSUInteger count = callStack.count;
     void *frames[count];
@@ -16,8 +16,8 @@ static void ZWCADGuard_UncaughtExceptionHandler(NSException *exception) {
     }
     
     // 记录崩溃异常到本地
-    ZWCADGuard_RecordObjCCrash([[exception name] UTF8String],
-                               [[exception reason] UTF8String],
+    ZWCADGuard_RecordObjCCrash([exception.name UTF8String],
+                               [exception.reason UTF8String],
                                frames,
                                (int)count);
 }
@@ -101,10 +101,6 @@ static void ZWCADGuard_UncaughtExceptionHandler(NSException *exception) {
     ZWCADGuard_AddBreadcrumb([category UTF8String],
                              [action UTF8String],
                              [details UTF8String]);
-}
-
-- (NSString *)getLogDirectory {
-    return _logDir;
 }
 
 - (NSArray<NSString *> *)getCrashLogPaths {
