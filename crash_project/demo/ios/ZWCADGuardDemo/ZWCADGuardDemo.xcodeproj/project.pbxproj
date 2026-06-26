@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		163C5744708D24EDFBABC380 /* ViewControlle.mm in Sources */ = {isa = PBXBuildFile; fileRef = 5698CB1B5B8969898D85F5AD /* ViewControlle.mm */; };
 		2B09A0A1E54572A68D76384C /* cxa_throw_hook.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DA9C1601313CD3CEA3ED71F5 /* cxa_throw_hook.cpp */; };
+		2B8C9D232FEE19B80099B25D /* fishhook.c in Sources */ = {isa = PBXBuildFile; fileRef = 2B8C9D222FEE19B70099B25D /* fishhook.c */; };
+		2B8C9D272FEE1A700099B25D /* fishhook.h in Headers */ = {isa = PBXBuildFile; fileRef = 2B8C9D262FEE1A700099B25D /* fishhook.h */; };
 		4EACD81ED8FF5AF36219F4ED /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = A772DA5866197B086AA11988 /* main.m */; };
 		517C82244C4403417FCE2A7E /* dwgGuardBacktrace.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8CD81BD43F471E3F5B719E8D /* dwgGuardBacktrace.cpp */; };
 		555A78ABA5B4FE47FE79AA1D /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 4431D8E6AB5097278DBFD63D /* AppDelegate.m */; };
@@ -36,6 +38,8 @@
 		008DD5BC77CCD53883AA656D /* libZWCADGuard.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libZWCADGuard.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		019B86DC45114EE39CBCD93F /* ZWMobileGuard.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = ZWMobileGuard.mm; path = ../../../sdk/ios/ZWMobileGuard.mm; sourceTree = "<group>"; };
 		11EB48354A2ED32DC8468C2A /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		2B8C9D222FEE19B70099B25D /* fishhook.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = fishhook.c; path = ../../../sdk/ios/fishhook.c; sourceTree = "<group>"; };
+		2B8C9D262FEE1A700099B25D /* fishhook.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = fishhook.h; path = /Users/zw_wales/CrashGuardDemo/crash_project/sdk/ios/fishhook.h; sourceTree = "<absolute>"; };
 		4431D8E6AB5097278DBFD63D /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		5698CB1B5B8969898D85F5AD /* ViewControlle.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ViewControlle.mm; sourceTree = "<group>"; };
 		5A337B3B835A0E5013EC59B6 /* dwgGuard.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = dwgGuard.cpp; path = ../../../sdk/core/dwgGuard.cpp; sourceTree = "<group>"; };
@@ -143,6 +147,8 @@
 		FD87A47350CEB063C64DC347 /* SDK */ = {
 			isa = PBXGroup;
 			children = (
+				2B8C9D262FEE1A700099B25D /* fishhook.h */,
+				2B8C9D222FEE19B70099B25D /* fishhook.c */,
 				70681454C133F9ADD59E1230 /* dwgGuard.h */,
 				5A337B3B835A0E5013EC59B6 /* dwgGuard.cpp */,
 				9001A47F1A3990305E0C29A4 /* dwgGuardBacktrace.h */,
@@ -161,6 +167,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2B8C9D272FEE1A700099B25D /* fishhook.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -293,6 +300,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2B8C9D232FEE19B80099B25D /* fishhook.c in Sources */,
 				7DAD3C5A6D0FD77E325A0B29 /* dwgGuard.cpp in Sources */,
 				517C82244C4403417FCE2A7E /* dwgGuardBacktrace.cpp in Sources */,
 				DE22CCE2380391F19EA4B8CD /* ZWMobileGuard.mm in Sources */,

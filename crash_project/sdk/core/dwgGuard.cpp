@@ -13,6 +13,7 @@
 #include <time.h>
 #include <typeinfo>
 #include <unistd.h>
+#include <cxxabi.h>
 
 #ifdef __APPLE__
 #include <TargetConditionals.h>
@@ -92,7 +93,7 @@ static struct {
 static struct {
     // 崩溃日志存储路径
     char logDirectory[512];
-    // 自定义 std::set_terminate 处理
+    // 原始 std::set_terminate 处理
     std::terminate_handler originalTerminateHandler;
     // 系统原信号量处理
     struct sigaction originalSigactions[NSIG];
@@ -287,32 +288,28 @@ static void dumpToFile(const char *crashType, const char *reason, void **crashFr
 }
 
 #pragma mark - 自定义崩溃捕获拦截处理
-// 动态链接符号声明，用于获取当前抛出异常的类型
-extern "C" std::type_info *__cxa_current_exception_type();
-
 // Terminate 崩溃捕获拦截处理
 static void zwMobileGuardTerminateHandler(void) {
     void *crash_frames[MAX_STACK_FRAMES];
-    int crash_frames_count =
-    zwMobileGuardCaptureBacktrace(crash_frames, MAX_STACK_FRAMES);
+    int crash_frames_count = zwMobileGuardCaptureBacktrace(crash_frames, MAX_STACK_FRAMES);
     
-    char reason_buf[256] = {0};
-    const char *exception_type_name = "Unknown C++ Exception";
+    char reasonBuf[256] = {0};
+    const char *exceptionTypeName = "Unknown C++ Exception";
     
-    // 利用 __cxa_current_exception_type() 动态获取异常类型
-    std::type_info *tinfo = __cxa_current_exception_type();
+    // 获取异常类型
+    std::type_info *tinfo = __cxxabiv1::__cxa_current_exception_type();
     if (tinfo && tinfo->name()) {
         char *demangled = zwMobileGuardDemangle(tinfo->name());
         if (demangled) {
-            strncpy(reason_buf, demangled, sizeof(reason_buf) - 1);
+            strncpy(reasonBuf, demangled, sizeof(reasonBuf) - 1);
             free(demangled);
         } else {
-            strncpy(reason_buf, tinfo->name(), sizeof(reason_buf) - 1);
+            strncpy(reasonBuf, tinfo->name(), sizeof(reasonBuf) - 1);
         }
-        exception_type_name = reason_buf;
+        exceptionTypeName = reasonBuf;
     }
     
-    // 尝试重抛异常以截获 what() 信息
+    // 重抛异常以截获 what() 信息
     char message_buf[512] = {0};
     try {
         if (std::current_exception()) {
@@ -328,12 +325,10 @@ static void zwMobileGuardTerminateHandler(void) {
     
     // 拼接最终的原因
     char final_reason[1024];
-    snprintf(final_reason, sizeof(final_reason), "Type: %s, Message: %s",
-             exception_type_name, strlen(message_buf) > 0 ? message_buf : "N/A");
+    snprintf(final_reason, sizeof(final_reason), "Type: %s, Message: %s", exceptionTypeName, strlen(message_buf) > 0 ? message_buf : "N/A");
     
     // 落盘写入
-    dumpToFile("C++ Uncaught Exception (std::terminate)", final_reason,
-                 crash_frames, crash_frames_count);
+    dumpToFile("C++ Uncaught Exception (std::terminate)", final_reason, crash_frames, crash_frames_count);
     
     // 转发给原本的 terminate 处理器
     if (g_sdkConfig.originalTerminateHandler) {
@@ -411,6 +406,7 @@ extern "C" int zwMobileGuardInit(const char *logDir) {
     mkdir(g_sdkConfig.logDirectory, 0755);
     
     // 设置 std::terminate 拦截器
+    // 函数 std::set_terminate 会将传入的设置为新处理器，并返回旧处理器
     g_sdkConfig.originalTerminateHandler = std::set_terminate(zwMobileGuardTerminateHandler);
 
 #ifdef __APPLE__
@@ -557,14 +553,14 @@ extern "C" void zwMobileGuardSimulateCrashDump(const char *message) {
 // 记录OC异常到本地
 extern "C" void zwMobileGuardRecordObjCCrash(const char *name, const char *reason, void **frames, int count) {
     char finalReason[512];
-    snprintf(finalReason, sizeof(finalReason), "异常名称: %s, 异常原因: %s", name ? name : "NULL", reason ? reason : "NULL");
+    snprintf(finalReason, sizeof(finalReason), "Name: %s, Reason: %s", name ? name : "NULL", reason ? reason : "NULL");
     dumpToFile("OC Uncaught Exception", finalReason, frames, count);
 }
 
 // 记录 Java 层未捕获异常
 extern "C" void zwMobileGuardRecordManagedException(const char *language, const char *name, const char *reason) {
     char finalReason[2048];
-    snprintf(finalReason, sizeof(finalReason), "语言类别: %s, 异常类名: %s, 异常描述或堆栈文本: %s", language ? language : "JAVA", name ? name : "NULL", reason ? reason : "NULL");
+    snprintf(finalReason, sizeof(finalReason), "Language: %s, Reason: %s, Reason: %s", language ? language : "JAVA", name ? name : "NULL", reason ? reason : "NULL");
     // 托管异常(非原生异常)
     dumpToFile("Managed Uncaught Exception", finalReason, nullptr, 0);
 }
