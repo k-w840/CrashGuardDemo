@@ -82,10 +82,10 @@ static struct {
     char path[512];
     long size;
     char hash[64];
-    char file_id[64];
-    char project_id[64];
-    char project_name[256];
-    bool is_active;
+    char fileId[64];
+    char projectId[64];
+    char projectName[256];
+    bool isActive;
     pthread_mutex_t mutex;
 } g_activeDrawing = {{0}, {0}, 0, {0}, {0}, {0}, {0}, false, PTHREAD_MUTEX_INITIALIZER};
 
@@ -159,16 +159,16 @@ static void clear_active_drawing_internal(void) {
     memset(g_activeDrawing.name, 0, sizeof(g_activeDrawing.name));
     memset(g_activeDrawing.path, 0, sizeof(g_activeDrawing.path));
     memset(g_activeDrawing.hash, 0, sizeof(g_activeDrawing.hash));
-    memset(g_activeDrawing.file_id, 0, sizeof(g_activeDrawing.file_id));
-    memset(g_activeDrawing.project_id, 0, sizeof(g_activeDrawing.project_id));
-    memset(g_activeDrawing.project_name, 0,
-           sizeof(g_activeDrawing.project_name));
+    memset(g_activeDrawing.fileId, 0, sizeof(g_activeDrawing.fileId));
+    memset(g_activeDrawing.projectId, 0, sizeof(g_activeDrawing.projectId));
+    memset(g_activeDrawing.projectName, 0,
+           sizeof(g_activeDrawing.projectName));
     g_activeDrawing.size = 0;
-    g_activeDrawing.is_active = false;
+    g_activeDrawing.isActive = false;
 }
 
 #pragma mark - 崩溃日志落盘
-static void writeCrashReport(int fd, const char *crash_type, const char *reason, void **crash_frames, int crash_frames_count) {
+static void writeCrashReport(int fd, const char *crash_type, const char *reason, void **crashFrames, int crashFramesCount) {
     safeWriteStr(fd, "========================================\n");
     safeWriteStr(fd, "          ZWMOBILE CRASH REPORT       \n");
     safeWriteStr(fd, "========================================\n\n");
@@ -185,20 +185,20 @@ static void writeCrashReport(int fd, const char *crash_type, const char *reason,
     // 图纸元数据 (仅记录脱敏后的标识，符合合规红线)
     pthread_mutex_lock(&g_activeDrawing.mutex);
     safeWriteStr(fd, "[Active Drawing Information]:\n");
-    if (g_activeDrawing.is_active) {
+    if (g_activeDrawing.isActive) {
         safeWriteStr(fd, "  File Name: ");
         safeWriteStr(fd, g_activeDrawing.name);
         safeWriteStr(fd, "\n  File ID: ");
-        safeWriteStr(fd, strlen(g_activeDrawing.file_id) > 0
-                       ? g_activeDrawing.file_id
+        safeWriteStr(fd, strlen(g_activeDrawing.fileId) > 0
+                       ? g_activeDrawing.fileId
                        : "N/A");
         safeWriteStr(fd, "\n  Project ID: ");
-        safeWriteStr(fd, strlen(g_activeDrawing.project_id) > 0
-                       ? g_activeDrawing.project_id
+        safeWriteStr(fd, strlen(g_activeDrawing.projectId) > 0
+                       ? g_activeDrawing.projectId
                        : "N/A");
         safeWriteStr(fd, "\n  Project Name: ");
-        safeWriteStr(fd, strlen(g_activeDrawing.project_name) > 0
-                       ? g_activeDrawing.project_name
+        safeWriteStr(fd, strlen(g_activeDrawing.projectName) > 0
+                       ? g_activeDrawing.projectName
                        : "N/A");
         safeWriteStr(fd, "\n  File Size: ");
         safeWriteDec(fd, g_activeDrawing.size);
@@ -221,21 +221,20 @@ static void writeCrashReport(int fd, const char *crash_type, const char *reason,
         safeWriteStr(fd, g_threadException.exceptionType);
         safeWriteStr(fd, "\n");
         
-        char stack_desc[2048];
+        char stackDesc[2048];
         zwMobileGuardFormatBacktrace(g_threadException.backtraceBuffer,
-                                     g_threadException.framesCount, stack_desc,
-                                     sizeof(stack_desc));
-        safeWriteStr(fd, stack_desc);
+                                     g_threadException.framesCount, stackDesc,
+                                     sizeof(stackDesc));
+        safeWriteStr(fd, stackDesc);
         safeWriteStr(fd, "\n");
     }
     
     // 2. 当前崩溃现场堆栈
-    if (crash_frames && crash_frames_count > 0) {
+    if (crashFrames && crashFramesCount > 0) {
         safeWriteStr(fd, "[Termination Stack Trace] (At crash/signal site):\n");
-        char stack_desc[2048];
-        zwMobileGuardFormatBacktrace(crash_frames, crash_frames_count, stack_desc,
-                                     sizeof(stack_desc));
-        safeWriteStr(fd, stack_desc);
+        char stackDesc[2048];
+        zwMobileGuardFormatBacktrace(crashFrames, crashFramesCount, stackDesc, sizeof(stackDesc));
+        safeWriteStr(fd, stackDesc);
         safeWriteStr(fd, "\n");
     }
     
@@ -469,7 +468,7 @@ extern "C" void zwMobileGuardRegisterThreadSignalStack(void) {
 // 关联当前活跃图纸
 extern "C" void zwMobileGuardSetActiveDrawingContext(
     const char *name, const char *path, long size, const char *hash,
-    const char *file_id, const char *project_id, const char *project_name) {
+    const char *fileId, const char *projectId, const char *projectName) {
     pthread_mutex_lock(&g_activeDrawing.mutex);
     // 绑定图纸时，清空历史数据
     clear_active_drawing_internal();
@@ -485,20 +484,20 @@ extern "C" void zwMobileGuardSetActiveDrawingContext(
     {
         strncpy(g_activeDrawing.hash, hash, sizeof(g_activeDrawing.hash) - 1);
     }
-    if (file_id)
+    if (fileId)
     {
-        strncpy(g_activeDrawing.file_id, file_id, sizeof(g_activeDrawing.file_id) - 1);
+        strncpy(g_activeDrawing.fileId, fileId, sizeof(g_activeDrawing.fileId) - 1);
     }
-    if (project_id)
+    if (projectId)
     {
-        strncpy(g_activeDrawing.project_id, project_id, sizeof(g_activeDrawing.project_id) - 1);
+        strncpy(g_activeDrawing.projectId, projectId, sizeof(g_activeDrawing.projectId) - 1);
     }
-    if (project_name)
+    if (projectName)
     {
-        strncpy(g_activeDrawing.project_name, project_name, sizeof(g_activeDrawing.project_name) - 1);
+        strncpy(g_activeDrawing.projectName, projectName, sizeof(g_activeDrawing.projectName) - 1);
     }
     g_activeDrawing.size = size;
-    g_activeDrawing.is_active = true;
+    g_activeDrawing.isActive = true;
     pthread_mutex_unlock(&g_activeDrawing.mutex);
 }
 

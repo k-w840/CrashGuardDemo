@@ -57,26 +57,26 @@ extern "C" int zwMobileGuardCaptureBacktrace(void** buffer, int maxFrames) {
 }
 
 // 把 C++ 的“符号修饰名”还原成函数/类型名。
-extern "C" char* zwMobileGuardDemangle(const char* mangled_name) {
-    if (mangled_name == NULL) {
+extern "C" char* zwMobileGuardDemangle(const char* mangledName) {
+    if (mangledName == NULL) {
         return NULL;
     }
     int status = 0;
-    char* demangled = abi::__cxa_demangle(mangled_name, NULL, NULL, &status);
+    char* demangled = abi::__cxa_demangle(mangledName, NULL, NULL, &status);
     if (status == 0 && demangled != NULL) {
         return demangled; // 调用者需 free()
     }
     // 如果还原失败，返回原名字的副本
-    return strdup(mangled_name);
+    return strdup(mangledName);
 }
 
-extern "C" void zwMobileGuardFormatBacktrace(void** buffer, int frames, char* output_buf, size_t output_size) {
-    if (buffer == NULL || frames <= 0 || output_buf == NULL || output_size == 0) {
+extern "C" void zwMobileGuardFormatBacktrace(void** buffer, int frames, char* outputBuf, size_t outputSize) {
+    if (buffer == NULL || frames <= 0 || outputBuf == NULL || outputSize == 0) {
         return;
     }
     
     size_t written = 0;
-    output_buf[0] = '\0';
+    outputBuf[0] = '\0';
     
     for (int i = 0; i < frames; ++i) {
         void* addr = buffer[i];
@@ -97,7 +97,7 @@ extern "C" void zwMobileGuardFormatBacktrace(void** buffer, int frames, char* ou
             if (info.dli_sname != NULL) {
                 // 尝试 C++ 符号反混淆 (Demangle)
                 char* demangled = zwMobileGuardDemangle(info.dli_sname);
-                int len = snprintf(output_buf + written, output_size - written,
+                int len = snprintf(outputBuf + written, outputSize - written,
                                    "#%02d: %s + 0x%lx (%s + 0x%lx)\n",
                                    i, lib_name, (unsigned long)offset,
                                    demangled ? demangled : info.dli_sname,
@@ -105,17 +105,17 @@ extern "C" void zwMobileGuardFormatBacktrace(void** buffer, int frames, char* ou
                 if (demangled) {
                     free(demangled);
                 }
-                if (len > 0 && written + len < output_size) {
+                if (len > 0 && written + len < outputSize) {
                     written += len;
                 } else {
                     break;
                 }
             } else {
                 // 无符号名，仅输出模块偏移
-                int len = snprintf(output_buf + written, output_size - written,
+                int len = snprintf(outputBuf + written, outputSize - written,
                                    "#%02d: %s + 0x%lx (0x%p)\n",
                                    i, lib_name, (unsigned long)offset, addr);
-                if (len > 0 && written + len < output_size) {
+                if (len > 0 && written + len < outputSize) {
                     written += len;
                 } else {
                     break;
@@ -123,10 +123,9 @@ extern "C" void zwMobileGuardFormatBacktrace(void** buffer, int frames, char* ou
             }
         } else {
             // 无法获取模块信息，直接输出原始指针地址
-            int len = snprintf(output_buf + written, output_size - written,
-                               "#%02d: Unknown Module (0x%p)\n",
+            int len = snprintf(outputBuf + written, outputSize - written, "#%02d: Unknown Module (0x%p)\n",
                                i, addr);
-            if (len > 0 && written + len < output_size) {
+            if (len > 0 && written + len < outputSize) {
                 written += len;
             } else {
                 break;

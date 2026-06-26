@@ -21,10 +21,10 @@ int zwMobileGuardCaptureBacktrace(void** buffer, int maxFrames);
  * 
  * @param buffer 调用栈帧指针数组
  * @param frames 帧数
- * @param output_buf 输出缓冲区
- * @param output_size 输出缓冲区最大容量
+ * @param outputBuf 输出缓冲区
+ * @param outputSize 输出缓冲区最大容量
  */
-void zwMobileGuardFormatBacktrace(void** buffer, int frames, char* output_buf, size_t output_size);
+void zwMobileGuardFormatBacktrace(void** buffer, int frames, char* outputBuf, size_t outputSize);
 
 #ifdef __cplusplus
 }
