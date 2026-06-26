@@ -145,7 +145,7 @@ static void rebindCxaThrowForImage(const struct mach_header* header, intptr_t sl
     CxaThrowType original = nullptr;
     struct rebinding rebindings[] = {
         {"__cxa_throw", (void*)zwMobileGuardCxaThrowDecorator, (void**)&original}
-    };
+    }; 
     rebind_symbols_image((void*)header, slide, rebindings, 1);
     
     // 存储原__cxa_throw函数
