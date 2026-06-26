@@ -11,6 +11,20 @@
 		2B09A0A1E54572A68D76384C /* cxa_throw_hook.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DA9C1601313CD3CEA3ED71F5 /* cxa_throw_hook.cpp */; };
 		2B8C9D232FEE19B80099B25D /* fishhook.c in Sources */ = {isa = PBXBuildFile; fileRef = 2B8C9D222FEE19B70099B25D /* fishhook.c */; };
 		2B8C9D272FEE1A700099B25D /* fishhook.h in Headers */ = {isa = PBXBuildFile; fileRef = 2B8C9D262FEE1A700099B25D /* fishhook.h */; };
+		2B8C9D292FEE20780099B25D /* dwgGuardPOSIX.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B8C9D282FEE20780099B25D /* dwgGuardPOSIX.cpp */; };
+		2B8C9D2B2FEE208F0099B25D /* dwgGuardPOSIX.h in Headers */ = {isa = PBXBuildFile; fileRef = 2B8C9D2A2FEE208F0099B25D /* dwgGuardPOSIX.h */; };
+		2B8C9D2D2FEE229B0099B25D /* dwgGuardReport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B8C9D2C2FEE229B0099B25D /* dwgGuardReport.cpp */; };
+		2B8C9D2F2FEE22AD0099B25D /* dwgGuardReport.h in Headers */ = {isa = PBXBuildFile; fileRef = 2B8C9D2E2FEE22AD0099B25D /* dwgGuardReport.h */; };
+		2B8C9D312FEE25140099B25D /* dwgGuardInternal.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B8C9D302FEE25140099B25D /* dwgGuardInternal.cpp */; };
+		2B8C9D332FEE25370099B25D /* dwgGuardInternal.h in Headers */ = {isa = PBXBuildFile; fileRef = 2B8C9D322FEE25370099B25D /* dwgGuardInternal.h */; };
+		2B8C9D352FEE26CA0099B25D /* dwgGuardState.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B8C9D342FEE26CA0099B25D /* dwgGuardState.cpp */; };
+		2B8C9D372FEE26E00099B25D /* dwgGuardState.h in Headers */ = {isa = PBXBuildFile; fileRef = 2B8C9D362FEE26E00099B25D /* dwgGuardState.h */; };
+		2B8C9D392FEE2DDF0099B25D /* dwgGuardContext.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B8C9D382FEE2DDF0099B25D /* dwgGuardContext.cpp */; };
+		2B8C9D3B2FEE2DF20099B25D /* dwgGuardContext.h in Headers */ = {isa = PBXBuildFile; fileRef = 2B8C9D3A2FEE2DF20099B25D /* dwgGuardContext.h */; };
+		2B8C9D3D2FEE2F210099B25D /* dwgGuardThrow.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B8C9D3C2FEE2F210099B25D /* dwgGuardThrow.cpp */; };
+		2B8C9D3F2FEE2F380099B25D /* dwgGuardThrow.h in Headers */ = {isa = PBXBuildFile; fileRef = 2B8C9D3E2FEE2F380099B25D /* dwgGuardThrow.h */; };
+		2B8C9D412FEE39060099B25D /* dwgGuardExceptionRecord.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B8C9D402FEE39060099B25D /* dwgGuardExceptionRecord.cpp */; };
+		2B8C9D432FEE39190099B25D /* dwgGuardExceptionRecord.h in Headers */ = {isa = PBXBuildFile; fileRef = 2B8C9D422FEE39190099B25D /* dwgGuardExceptionRecord.h */; };
 		4EACD81ED8FF5AF36219F4ED /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = A772DA5866197B086AA11988 /* main.m */; };
 		517C82244C4403417FCE2A7E /* dwgGuardBacktrace.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8CD81BD43F471E3F5B719E8D /* dwgGuardBacktrace.cpp */; };
 		555A78ABA5B4FE47FE79AA1D /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 4431D8E6AB5097278DBFD63D /* AppDelegate.m */; };
@@ -40,6 +54,20 @@
 		11EB48354A2ED32DC8468C2A /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		2B8C9D222FEE19B70099B25D /* fishhook.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = fishhook.c; path = ../../../sdk/ios/fishhook.c; sourceTree = "<group>"; };
 		2B8C9D262FEE1A700099B25D /* fishhook.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = fishhook.h; path = /Users/zw_wales/CrashGuardDemo/crash_project/sdk/ios/fishhook.h; sourceTree = "<absolute>"; };
+		2B8C9D282FEE20780099B25D /* dwgGuardPOSIX.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = dwgGuardPOSIX.cpp; path = ../../../sdk/core/dwgGuardPOSIX.cpp; sourceTree = "<group>"; };
+		2B8C9D2A2FEE208F0099B25D /* dwgGuardPOSIX.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = dwgGuardPOSIX.h; path = /Users/zw_wales/CrashGuardDemo/crash_project/sdk/core/dwgGuardPOSIX.h; sourceTree = "<absolute>"; };
+		2B8C9D2C2FEE229B0099B25D /* dwgGuardReport.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = dwgGuardReport.cpp; path = ../../../sdk/core/dwgGuardReport.cpp; sourceTree = "<group>"; };
+		2B8C9D2E2FEE22AD0099B25D /* dwgGuardReport.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = dwgGuardReport.h; path = /Users/zw_wales/CrashGuardDemo/crash_project/sdk/core/dwgGuardReport.h; sourceTree = "<absolute>"; };
+		2B8C9D302FEE25140099B25D /* dwgGuardInternal.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = dwgGuardInternal.cpp; path = ../../../sdk/core/dwgGuardInternal.cpp; sourceTree = "<group>"; };
+		2B8C9D322FEE25370099B25D /* dwgGuardInternal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = dwgGuardInternal.h; path = /Users/zw_wales/CrashGuardDemo/crash_project/sdk/core/dwgGuardInternal.h; sourceTree = "<absolute>"; };
+		2B8C9D342FEE26CA0099B25D /* dwgGuardState.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = dwgGuardState.cpp; path = ../../../sdk/core/dwgGuardState.cpp; sourceTree = "<group>"; };
+		2B8C9D362FEE26E00099B25D /* dwgGuardState.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = dwgGuardState.h; path = /Users/zw_wales/CrashGuardDemo/crash_project/sdk/core/dwgGuardState.h; sourceTree = "<absolute>"; };
+		2B8C9D382FEE2DDF0099B25D /* dwgGuardContext.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = dwgGuardContext.cpp; path = ../../../sdk/core/dwgGuardContext.cpp; sourceTree = "<group>"; };
+		2B8C9D3A2FEE2DF20099B25D /* dwgGuardContext.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = dwgGuardContext.h; path = /Users/zw_wales/CrashGuardDemo/crash_project/sdk/core/dwgGuardContext.h; sourceTree = "<absolute>"; };
+		2B8C9D3C2FEE2F210099B25D /* dwgGuardThrow.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = dwgGuardThrow.cpp; path = ../../../sdk/core/dwgGuardThrow.cpp; sourceTree = "<group>"; };
+		2B8C9D3E2FEE2F380099B25D /* dwgGuardThrow.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = dwgGuardThrow.h; path = /Users/zw_wales/CrashGuardDemo/crash_project/sdk/core/dwgGuardThrow.h; sourceTree = "<absolute>"; };
+		2B8C9D402FEE39060099B25D /* dwgGuardExceptionRecord.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = dwgGuardExceptionRecord.cpp; path = ../../../sdk/core/dwgGuardExceptionRecord.cpp; sourceTree = "<group>"; };
+		2B8C9D422FEE39190099B25D /* dwgGuardExceptionRecord.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = dwgGuardExceptionRecord.h; path = /Users/zw_wales/CrashGuardDemo/crash_project/sdk/core/dwgGuardExceptionRecord.h; sourceTree = "<absolute>"; };
 		4431D8E6AB5097278DBFD63D /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		5698CB1B5B8969898D85F5AD /* ViewControlle.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ViewControlle.mm; sourceTree = "<group>"; };
 		5A337B3B835A0E5013EC59B6 /* dwgGuard.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = dwgGuard.cpp; path = ../../../sdk/core/dwgGuard.cpp; sourceTree = "<group>"; };
@@ -147,6 +175,20 @@
 		FD87A47350CEB063C64DC347 /* SDK */ = {
 			isa = PBXGroup;
 			children = (
+				2B8C9D422FEE39190099B25D /* dwgGuardExceptionRecord.h */,
+				2B8C9D402FEE39060099B25D /* dwgGuardExceptionRecord.cpp */,
+				2B8C9D3E2FEE2F380099B25D /* dwgGuardThrow.h */,
+				2B8C9D3C2FEE2F210099B25D /* dwgGuardThrow.cpp */,
+				2B8C9D3A2FEE2DF20099B25D /* dwgGuardContext.h */,
+				2B8C9D382FEE2DDF0099B25D /* dwgGuardContext.cpp */,
+				2B8C9D362FEE26E00099B25D /* dwgGuardState.h */,
+				2B8C9D342FEE26CA0099B25D /* dwgGuardState.cpp */,
+				2B8C9D322FEE25370099B25D /* dwgGuardInternal.h */,
+				2B8C9D302FEE25140099B25D /* dwgGuardInternal.cpp */,
+				2B8C9D2E2FEE22AD0099B25D /* dwgGuardReport.h */,
+				2B8C9D2C2FEE229B0099B25D /* dwgGuardReport.cpp */,
+				2B8C9D2A2FEE208F0099B25D /* dwgGuardPOSIX.h */,
+				2B8C9D282FEE20780099B25D /* dwgGuardPOSIX.cpp */,
 				2B8C9D262FEE1A700099B25D /* fishhook.h */,
 				2B8C9D222FEE19B70099B25D /* fishhook.c */,
 				70681454C133F9ADD59E1230 /* dwgGuard.h */,
@@ -167,7 +209,14 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2B8C9D2F2FEE22AD0099B25D /* dwgGuardReport.h in Headers */,
+				2B8C9D3B2FEE2DF20099B25D /* dwgGuardContext.h in Headers */,
+				2B8C9D432FEE39190099B25D /* dwgGuardExceptionRecord.h in Headers */,
 				2B8C9D272FEE1A700099B25D /* fishhook.h in Headers */,
+				2B8C9D332FEE25370099B25D /* dwgGuardInternal.h in Headers */,
+				2B8C9D3F2FEE2F380099B25D /* dwgGuardThrow.h in Headers */,
+				2B8C9D372FEE26E00099B25D /* dwgGuardState.h in Headers */,
+				2B8C9D2B2FEE208F0099B25D /* dwgGuardPOSIX.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -300,6 +349,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2B8C9D412FEE39060099B25D /* dwgGuardExceptionRecord.cpp in Sources */,
+				2B8C9D3D2FEE2F210099B25D /* dwgGuardThrow.cpp in Sources */,
+				2B8C9D392FEE2DDF0099B25D /* dwgGuardContext.cpp in Sources */,
+				2B8C9D352FEE26CA0099B25D /* dwgGuardState.cpp in Sources */,
+				2B8C9D312FEE25140099B25D /* dwgGuardInternal.cpp in Sources */,
+				2B8C9D2D2FEE229B0099B25D /* dwgGuardReport.cpp in Sources */,
+				2B8C9D292FEE20780099B25D /* dwgGuardPOSIX.cpp in Sources */,
 				2B8C9D232FEE19B80099B25D /* fishhook.c in Sources */,
 				7DAD3C5A6D0FD77E325A0B29 /* dwgGuard.cpp in Sources */,
 				517C82244C4403417FCE2A7E /* dwgGuardBacktrace.cpp in Sources */,
