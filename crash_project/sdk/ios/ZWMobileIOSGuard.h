@@ -1,16 +1,16 @@
 #import <Foundation/Foundation.h>
 
-@interface ZWMobileGuard : NSObject
+@interface ZWMobileIOSGuard : NSObject
 // 崩溃日志文件路径
 @property(nonatomic, copy, readonly) NSString *logDir;
 
 /**
- * 获取 ZWMobileGuard 单例
+ * 获取 ZWMobileIOSGuard 单例
  */
 + (instancetype)sharedInstance;
 
 /**
- * 初始化 ZWMobileGuard，自动捕获 C++ 未捕获异常、POSIX 信号、 OC 未捕获异常
+ * 初始化 ZWMobileIOSGuard，自动捕获 C++ 未捕获异常、POSIX 信号、 OC 未捕获异常
  */
 - (BOOL)initializeSDK;
 

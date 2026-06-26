@@ -1,7 +1,7 @@
-#include "dwgGuardContext.h"
-#include "dwgGuard.h"
-#include "dwgGuardInternal.h"
-#include "dwgGuardState.h"
+#include "ZWMobileGuardContext.h"
+#include "ZWMobileGuard.h"
+#include "ZWMobileGuardInternal.h"
+#include "ZWMobileGuardState.h"
 #include <pthread.h>
 #include <string.h>
 #include <time.h>

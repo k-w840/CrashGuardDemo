@@ -1,6 +1,6 @@
-#include "dwgGuardReport.h"
-#include "dwgGuardBacktrace.h"
-#include "dwgGuardState.h"
+#include "ZWMobileGuardReport.h"
+#include "ZWMobileGuardBacktrace.h"
+#include "ZWMobileGuardState.h"
 #include <fcntl.h>
 #include <pthread.h>
 #include <stdint.h>

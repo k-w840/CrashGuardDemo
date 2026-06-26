@@ -6,7 +6,7 @@
 #include <pthread.h>
 #include <signal.h>
 
-#include "dwgGuardInternal.h"
+#include "ZWMobileGuardInternal.h"
 
 struct BreadCrumbStore {
     BreadCrumb items[MAX_BREADCRUMBS];

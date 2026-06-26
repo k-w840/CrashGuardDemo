@@ -1,12 +1,11 @@
-#include "dwgGuard.h"
-#include "dwgGuardState.h"
-#include "dwgGuardPOSIX.h"
-#include "dwgGuardThrow.h"
+#include "ZWMobileGuard.h"
+#include "ZWMobileGuardState.h"
+#include "ZWMobileGuardPOSIX.h"
+#include "ZWMobileGuardThrow.h"
 #include <string.h>
 #include <sys/stat.h>
 
-#pragma mark - 对外 C API 实现
-// 初始化 注册 std::terminate、POSIX
+// 初始化
 extern "C" int zwMobileGuardInit(const char *logDir) {
     if (g_sdkConfig.isInitialized) {
         return 0;

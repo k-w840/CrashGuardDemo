@@ -1,9 +1,9 @@
-#include "dwgGuardPOSIX.h"
-#include "dwgGuard.h"
-#include "dwgGuardBacktrace.h"
-#include "dwgGuardInternal.h"
-#include "dwgGuardReport.h"
-#include "dwgGuardState.h"
+#include "ZWMobileGuardPOSIX.h"
+#include "ZWMobileGuard.h"
+#include "ZWMobileGuardBacktrace.h"
+#include "ZWMobileGuardInternal.h"
+#include "ZWMobileGuardReport.h"
+#include "ZWMobileGuardState.h"
 #include <pthread.h>
 #include <signal.h>
 #include <stdio.h>

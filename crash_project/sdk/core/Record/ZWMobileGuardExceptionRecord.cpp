@@ -1,7 +1,7 @@
-#include "dwgGuardExceptionRecord.h"
-#include "dwgGuardBacktrace.h"
-#include "dwgGuardInternal.h"
-#include "dwgGuardReport.h"
+#include "ZWMobileGuardExceptionRecord.h"
+#include "ZWMobileGuardBacktrace.h"
+#include "ZWMobileGuardInternal.h"
+#include "ZWMobileGuardReport.h"
 #include <stdio.h>
 
 // 模拟崩溃写入测试

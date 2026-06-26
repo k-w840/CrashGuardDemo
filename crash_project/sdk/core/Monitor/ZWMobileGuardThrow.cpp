@@ -1,9 +1,9 @@
-#include "dwgGuardThrow.h"
-#include "dwgGuard.h"
-#include "dwgGuardBacktrace.h"
-#include "dwgGuardInternal.h"
-#include "dwgGuardReport.h"
-#include "dwgGuardState.h"
+#include "ZWMobileGuardThrow.h"
+#include "ZWMobileGuard.h"
+#include "ZWMobileGuardBacktrace.h"
+#include "ZWMobileGuardInternal.h"
+#include "ZWMobileGuardReport.h"
+#include "ZWMobileGuardState.h"
 #include <cxxabi.h>
 #include <exception>
 #include <stdio.h>

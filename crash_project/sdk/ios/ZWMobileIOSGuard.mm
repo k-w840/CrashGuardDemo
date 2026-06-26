@@ -1,5 +1,5 @@
-#import "ZWMobileGuard.h"
-#include "dwgGuard.h"
+#import "ZWMobileIOSGuard.h"
+#include "ZWMobileGuard.h"
 #import <UIKit/UIKit.h>
 
 extern "C" void zwMobileGuardRecordObjCCrash(const char* name, const char* reason, void** frames, int count);
@@ -22,18 +22,18 @@ static void zwMobileGuardUncaughtExceptionHandler(NSException *exception) {
                                (int)count);
 }
 
-@interface ZWMobileGuard()
+@interface ZWMobileIOSGuard()
 @property(nonatomic, copy) NSString *logDir;
 
 @end
 
-@implementation ZWMobileGuard
+@implementation ZWMobileIOSGuard
 
 + (instancetype)sharedInstance {
-    static ZWMobileGuard *instance = nil;
+    static ZWMobileIOSGuard *instance = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        instance = [[ZWMobileGuard alloc] init];
+        instance = [[ZWMobileIOSGuard alloc] init];
     });
     return instance;
 }
@@ -48,14 +48,14 @@ static void zwMobileGuardUncaughtExceptionHandler(NSException *exception) {
     int res = zwMobileGuardInit([self.logDir UTF8String]);
     // 0为初始化成功
     if (res) {
-        NSLog(@"[ZWMobileGuard]初始化失败 %d", res);
+        NSLog(@"[ZWMobileIOSGuard]初始化失败 %d", res);
         return NO;
     }
     
     // 注册 OC 异常拦截器
     NSSetUncaughtExceptionHandler(&zwMobileGuardUncaughtExceptionHandler);
     
-    NSLog(@"[ZWMobileGuard]初始化成功:%@", self.logDir);
+    NSLog(@"[ZWMobileIOSGuard]初始化成功:%@", self.logDir);
     return YES;
 }
 
@@ -95,7 +95,7 @@ static void zwMobileGuardUncaughtExceptionHandler(NSException *exception) {
     NSError *error = nil;
     NSArray<NSString *> *files = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:self.logDir error:&error];
     if (error) {
-        NSLog(@"[ZWMobileGuard] 获取崩溃存储路径失败:%@", error);
+        NSLog(@"[ZWMobileIOSGuard] 获取崩溃存储路径失败:%@", error);
         return @[];
     }
     
@@ -114,7 +114,7 @@ static void zwMobileGuardUncaughtExceptionHandler(NSException *exception) {
     NSError *error = nil;
     NSString *content = [NSString stringWithContentsOfFile:path encoding:NSUTF8StringEncoding error:&error];
     if (error) {
-        NSLog(@"[ZWMobileGuard] 读取崩溃文件失败: %@，%@", path, error);
+        NSLog(@"[ZWMobileIOSGuard] 读取崩溃文件失败: %@，%@", path, error);
         return @"";
     }
     return content;
@@ -171,7 +171,7 @@ static void zwMobileGuardUncaughtExceptionHandler(NSException *exception) {
     NSError *error = nil;
     BOOL res = [[NSFileManager defaultManager] removeItemAtPath:path error:&error];
     if (error) {
-        NSLog(@"[ZWMobileGuard] 删除崩溃文件失败: %@，%@", path, error);
+        NSLog(@"[ZWMobileIOSGuard] 删除崩溃文件失败: %@，%@", path, error);
     }
     return res;
 }
