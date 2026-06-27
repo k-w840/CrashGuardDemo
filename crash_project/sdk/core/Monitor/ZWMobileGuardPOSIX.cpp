@@ -14,7 +14,8 @@
 static void zwMobileGuardSignalHandler(int sig, siginfo_t *info, void *context) {
     // 获取堆栈
     void *crashFrames[MAX_STACK_FRAMES];
-    int crashFramesCount = zwMobileGuardCaptureBacktrace(crashFrames, MAX_STACK_FRAMES);
+    // signal 场景优先使用上下文中的寄存器现场展开堆栈
+    int crashFramesCount = zwMobileGuardCaptureSignalBacktrace(context, crashFrames, MAX_STACK_FRAMES);
     
     // 构造崩溃原因
     char reason[128];

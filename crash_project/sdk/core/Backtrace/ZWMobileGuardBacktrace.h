@@ -17,6 +17,18 @@ extern "C" {
 int zwMobileGuardCaptureBacktrace(void** buffer, int maxFrames);
 
 /**
+ * 从 signal 的上下文中回朔调用栈
+ *
+ * @param signalUserContext signal handler 回调传入的上下文
+ * @param buffer 调用栈帧地址的指针数组
+ * @param maxFrames 最大抓取帧数
+ * @return int 实际抓取的帧数
+ */
+int zwMobileGuardCaptureSignalBacktrace(void* signalUserContext,
+                                        void** buffer,
+                                        int maxFrames);
+
+/**
  * @brief 格式化堆栈为可读的文本，若支持，会解析出 Mach-O 模块名与偏移量
  * 
  * @param buffer 调用栈帧指针数组
