@@ -38,6 +38,14 @@ struct SDKConfig {
     bool isInitialized;
 };
 
+typedef enum ZWMobileCrashHandlingResult {
+    ZWMobileCrashHandlingResultFirstCrash = 0,
+    ZWMobileCrashHandlingResultRecrash = 1,
+} ZWMobileCrashHandlingResult;
+
+// 进入 fatal crash 统一处理状态机
+ZWMobileCrashHandlingResult zwMobileGuardEnterFatalCrashHandling(void);
+
 extern thread_local ThreadExceptionInfo g_threadException;
 extern BreadCrumbStore g_breadCrumbs;
 extern ActiveDrawingState g_activeDrawing;

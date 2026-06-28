@@ -9,9 +9,29 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+
+// 只处理这五个即可，其余信号为系统层面不能捕获，或者是用户主动操作的正常信号
+static const int kZwMobileGuardFatalSignals[] = {SIGSEGV, SIGABRT, SIGILL, SIGFPE, SIGBUS};
+
+// 恢复原有 signal handler，避免崩溃处理过程中再次崩溃导致错误
+static void restoreOriginalSignalHandlers(void) {
+    for (int i = 0; i < 5; ++i) {
+        int sig = kZwMobileGuardFatalSignals[i];
+        sigaction(sig, &g_sdkConfig.originalSigactions[sig], nullptr);
+    }
+}
 
 // POSIX 崩溃捕获拦截处理
 static void zwMobileGuardSignalHandler(int sig, siginfo_t *info, void *context) {
+    ZWMobileCrashHandlingResult handlingResult = zwMobileGuardEnterFatalCrashHandling();
+    // 先把自己卸载掉，再继续处理
+    restoreOriginalSignalHandlers();
+    if (handlingResult != ZWMobileCrashHandlingResultFirstCrash) {
+        raise(sig);
+        return;
+    }
+
     // 获取堆栈
     void *crashFrames[MAX_STACK_FRAMES];
     // signal 场景优先使用上下文中的寄存器现场展开堆栈
@@ -25,11 +45,10 @@ static void zwMobileGuardSignalHandler(int sig, siginfo_t *info, void *context) 
     // 写入文件
     dumpToFile("OS POSIX Signal Crash", reason, crashFrames, crashFramesCount);
     
-    // 恢复原本的信号处理
     struct sigaction originalAction = g_sdkConfig.originalSigactions[sig];
-    // 默认信号处理
-    if (originalAction.sa_handler == SIG_DFL) {
-        signal(sig, SIG_DFL);
+
+    // SIG_DFL(系统默认处理) 和 SIG_IGN(忽略信号) 原本没自定义处理，直接触发一次信号
+    if (originalAction.sa_handler == SIG_DFL || originalAction.sa_handler == SIG_IGN) {
         raise(sig);
     } else if (originalAction.sa_handler != SIG_IGN) {
         // 有自定义处理，根据参数类型 返回自定义处理
@@ -67,9 +86,6 @@ static void alternateStackInitFunc() {
 /// posix注册
 void zwMobilePosixInit(void) {
     // 注册 POSIX 信号处理器
-    // 只处理这五个即可，其余信号为系统层面不能捕获，或者是用户主动操作的正常信号
-    int signalsToCatch[] = {SIGSEGV, SIGABRT, SIGILL, SIGFPE, SIGBUS};
-    
     struct sigaction sa;
     memset(&sa, 0, sizeof(sa));
     // 设置信号崩溃时处理函数
@@ -79,7 +95,7 @@ void zwMobilePosixInit(void) {
     sa.sa_flags = SA_SIGINFO | SA_ONSTACK;
     
     for (int i = 0; i < 5; ++i) {
-        int sig = signalsToCatch[i];
+        int sig = kZwMobileGuardFatalSignals[i];
         // 设置崩溃信号自定义处理器，并存储原处理
         sigaction(sig, &sa, &g_sdkConfig.originalSigactions[sig]);
     }

@@ -39,6 +39,11 @@ extern "C" void zwMobileGuardRecordThrowState(void *thrown_exception, std::type_
 #pragma mark - Terminate崩溃捕获拦截处理
 // Terminate 崩溃捕获拦截处理
 static void zwMobileGuardTerminateHandler(void) {
+    ZWMobileCrashHandlingResult handlingResult = zwMobileGuardEnterFatalCrashHandling();
+    if (handlingResult == ZWMobileCrashHandlingResultRecrash) {
+        _Exit(1);
+    }
+
     void *crash_frames[MAX_STACK_FRAMES];
     int crash_frames_count = zwMobileGuardCaptureBacktrace(crash_frames, MAX_STACK_FRAMES);
     
