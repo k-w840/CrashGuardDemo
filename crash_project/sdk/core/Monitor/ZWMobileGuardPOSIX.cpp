@@ -2,7 +2,7 @@
 #include "ZWMobileGuard.h"
 #include "ZWMobileGuardBacktrace.h"
 #include "ZWMobileGuardInternal.h"
-#include "ZWMobileGuardReport.h"
+#include "ZWMobileGuardRawReport.h"
 #include "ZWMobileGuardState.h"
 #include <pthread.h>
 #include <signal.h>
@@ -37,13 +37,8 @@ static void zwMobileGuardSignalHandler(int sig, siginfo_t *info, void *context) 
     // signal 场景优先使用上下文中的寄存器现场展开堆栈
     int crashFramesCount = zwMobileGuardCaptureSignalBacktrace(context, crashFrames, MAX_STACK_FRAMES);
     
-    // 构造崩溃原因
-    char reason[128];
-    snprintf(reason, sizeof(reason), "Signal %d (%s) at address %p", sig,
-             strsignal(sig), info ? info->si_addr : nullptr);
-    
-    // 写入文件
-    dumpToFile("OS POSIX Signal Crash", reason, crashFrames, crashFramesCount);
+    // signal 场景直接落盘格式化的 JSON 数据
+    zwMobileGuardWriteReportInternal(ZWRawCrashTypeSignal, sig, info, context, nullptr, nullptr, crashFrames, crashFramesCount);
     
     struct sigaction originalAction = g_sdkConfig.originalSigactions[sig];
 

@@ -1,6 +1,7 @@
 #import "ZWMobileIOSGuard.h"
 #include "ZWMobileGuard.h"
 #import <UIKit/UIKit.h>
+#import <sys/utsname.h>
 
 extern "C" void zwMobileGuardRecordObjCCrash(const char* name, const char* reason, void** frames, int count);
 
@@ -44,8 +45,30 @@ static void zwMobileGuardUncaughtExceptionHandler(NSException *exception) {
     // 指定崩溃日志存放文件夹
     self.logDir = [cacheDir stringByAppendingPathComponent:@"ZWCrashLogs"];
     
+    // 获取应用和环境元数据
+    NSBundle *mainBundle = [NSBundle mainBundle];
+    NSString *processPath = [mainBundle executablePath] ?: @"";
+    NSString *processName = [processPath lastPathComponent] ?: @"";
+    NSString *bundleId = [mainBundle bundleIdentifier] ?: @"";
+    NSString *appVersion = [mainBundle objectForInfoDictionaryKey:@"CFBundleShortVersionString"] ?: @"";
+    NSString *buildVersion = [mainBundle objectForInfoDictionaryKey:@"CFBundleVersion"] ?: @"";
+    
+    NSString *osVersion = [NSString stringWithFormat:@"iOS %@", [UIDevice currentDevice].systemVersion];
+    
+    // 使用 std utsname 现成方法获取具体硬件设备型号（如 iPhone16,2）
+    struct utsname systemInfo;
+    uname(&systemInfo);
+    NSString *deviceModel = [NSString stringWithCString:systemInfo.machine encoding:NSUTF8StringEncoding] ?: @"";
+    
     // 初始化 C++ 监控组件（注册 std::terminate 与 POSIX 信号拦截）
-    int res = zwMobileGuardInit([self.logDir UTF8String]);
+    int res = zwMobileGuardInit([self.logDir UTF8String],
+                                [processName UTF8String],
+                                [processPath UTF8String],
+                                [bundleId UTF8String],
+                                [appVersion UTF8String],
+                                [buildVersion UTF8String],
+                                [osVersion UTF8String],
+                                [deviceModel UTF8String]);
     // 0为初始化成功
     if (res) {
         NSLog(@"[ZWMobileIOSGuard]初始化失败 %d", res);
@@ -101,8 +124,8 @@ static void zwMobileGuardUncaughtExceptionHandler(NSException *exception) {
     
     NSMutableArray<NSString *> *paths = [NSMutableArray array];
     for (NSString *file in files) {
-        // 过滤以 crash_ 开头并以 .log 结尾的崩溃报告文件
-        if ([file hasPrefix:@"crash_"] && [file hasSuffix:@".log"]) {
+        // 过滤以 crash_ 开头并以 .json 结尾的崩溃报告文件
+        if ([file hasPrefix:@"crash_"] && [file hasSuffix:@".json"]) {
             [paths addObject:[self.logDir stringByAppendingPathComponent:file]];
         }
     }
@@ -130,24 +153,29 @@ static void zwMobileGuardUncaughtExceptionHandler(NSException *exception) {
         return;
     }
     
-    // 模拟网络请求延时 1.5 秒
-//    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-//        // 解析日志查找是否有图纸路径
-//        NSString *drawingPath = nil;
-//        NSString *drawingName = nil;
-//        
-//        NSArray *lines = [logContent componentsSeparatedByString:@"\n"];
-//        for (NSString *line in lines) {
-//            if ([line containsString:@"File Path (Raw):"]) {
-//                drawingPath = [[line stringByReplacingOccurrencesOfString:@"  File Path (Raw): " withString:@""] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-//            }
-//            if ([line containsString:@"File Name:"]) {
-//                drawingName = [[line stringByReplacingOccurrencesOfString:@"  File Name: " withString:@""] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+//    __block NSString *drawingPath = nil;
+//    __block NSString *drawingName = nil;
+//    
+//    NSData *jsonData = [logContent dataUsingEncoding:NSUTF8StringEncoding];
+//    if (jsonData) {
+//        NSError *error = nil;
+//        NSDictionary *jsonDict = [NSJSONSerialization JSONObjectWithData:jsonData options:0 error:&error];
+//        if (!error && [jsonDict isKindOfClass:[NSDictionary class]]) {
+//            NSDictionary *activeDrawing = jsonDict[@"active_drawing"];
+//            if ([activeDrawing isKindOfClass:[NSDictionary class]]) {
+//                NSNumber *isActive = activeDrawing[@"is_active"];
+//                if (isActive && [isActive boolValue]) {
+//                    drawingPath = activeDrawing[@"path"];
+//                    drawingName = activeDrawing[@"name"];
+//                }
 //            }
 //        }
-//        
+//    }
+    
+    // 模拟网络请求延时 1.5 秒
+//    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
 //        NSMutableString *resultMsg = [NSMutableString stringWithString:@"[模拟服务器上报成功]\n"];
-//        [resultMsg appendString:@"1. 崩溃元数据及面包屑上传成功。\n"];
+//        [resultMsg appendString:@"1. 崩溃元数据及面包屑 JSON 上传成功。\n"];
 //        
 //        if (drawingPath && [drawingPath length] > 0) {
 //            if (uploadDrawing) {

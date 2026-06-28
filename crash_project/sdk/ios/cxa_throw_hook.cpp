@@ -37,7 +37,7 @@ static CxaRethrowType lookupOriginalCxaRethrow() {
     return (CxaRethrowType)dlsym(RTLD_NEXT, "__cxa_rethrow");
 }
 
-//记录原始 __cxa_throw 函数
+// 记录原始 __cxa_throw 函数
 static void rememberOriginalCxaThrow(const void* binaryImageBase, CxaThrowType function) {
     if (binaryImageBase == nullptr || function == nullptr) {
         return;

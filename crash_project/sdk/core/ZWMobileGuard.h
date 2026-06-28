@@ -8,12 +8,18 @@ extern "C" {
 #include <stddef.h>
 
 /**
- * @brief 初始化 ZWMobileGuard SDK
+ * 初始化 ZWMobileGuard SDK
  *
- * @param logDir 崩溃日志落盘的绝对路径
  * @return int 0表示成功，非0表示失败
  */
-int zwMobileGuardInit(const char* logDir);
+int zwMobileGuardInit(const char* logDir,
+                      const char* processName,
+                      const char* processPath,
+                      const char* bundleId,
+                      const char* appVersion,
+                      const char* buildVersion,
+                      const char* osVersion,
+                      const char* deviceModel);
 
 /**
  *  注册当前线程的备用信号栈以处理拦截栈溢出崩溃

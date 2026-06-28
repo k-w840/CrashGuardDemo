@@ -7,59 +7,51 @@
 #include <time.h>
 
 #pragma mark - 图纸相关
-// 清空活跃图纸数据
-static void clearActiveDrawingInternal(void) {
-    memset(g_activeDrawing.name, 0, sizeof(g_activeDrawing.name));
-    memset(g_activeDrawing.path, 0, sizeof(g_activeDrawing.path));
-    memset(g_activeDrawing.hash, 0, sizeof(g_activeDrawing.hash));
-    memset(g_activeDrawing.fileId, 0, sizeof(g_activeDrawing.fileId));
-    memset(g_activeDrawing.projectId, 0, sizeof(g_activeDrawing.projectId));
-    memset(g_activeDrawing.projectName, 0,
-           sizeof(g_activeDrawing.projectName));
-    g_activeDrawing.size = 0;
-    g_activeDrawing.isActive = false;
-}
-
 // 关联当前活跃图纸
 extern "C" void zwMobileGuardSetActiveDrawingContext(
     const char *name, const char *path, long size, const char *hash,
     const char *fileId, const char *projectId, const char *projectName) {
     pthread_mutex_lock(&g_activeDrawing.mutex);
     // 绑定图纸时，清空历史数据
-    clearActiveDrawingInternal();
+    memset(&g_activeDrawing.info, 0, sizeof(g_activeDrawing.info));
     if (name)
     {
-        strncpy(g_activeDrawing.name, name, sizeof(g_activeDrawing.name) - 1);
+        strncpy(g_activeDrawing.info.name, name, sizeof(g_activeDrawing.info.name) - 1);
     }
     if (path)
     {
-        strncpy(g_activeDrawing.path, path, sizeof(g_activeDrawing.path) - 1);
+        strncpy(g_activeDrawing.info.path, path, sizeof(g_activeDrawing.info.path) - 1);
     }
     if (hash)
     {
-        strncpy(g_activeDrawing.hash, hash, sizeof(g_activeDrawing.hash) - 1);
+        strncpy(g_activeDrawing.info.hash, hash, sizeof(g_activeDrawing.info.hash) - 1);
     }
     if (fileId)
     {
-        strncpy(g_activeDrawing.fileId, fileId, sizeof(g_activeDrawing.fileId) - 1);
+        strncpy(g_activeDrawing.info.fileId, fileId, sizeof(g_activeDrawing.info.fileId) - 1);
     }
     if (projectId)
     {
-        strncpy(g_activeDrawing.projectId, projectId, sizeof(g_activeDrawing.projectId) - 1);
+        strncpy(g_activeDrawing.info.projectId, projectId, sizeof(g_activeDrawing.info.projectId) - 1);
     }
     if (projectName)
     {
-        strncpy(g_activeDrawing.projectName, projectName, sizeof(g_activeDrawing.projectName) - 1);
+        strncpy(g_activeDrawing.info.projectName, projectName, sizeof(g_activeDrawing.info.projectName) - 1);
     }
-    g_activeDrawing.size = size;
-    g_activeDrawing.isActive = true;
+    g_activeDrawing.info.size = size;
+    g_activeDrawing.info.isActive = true;
+    // 同步快照数据
+    g_activeDrawingSnapshot = g_activeDrawing.info;
     pthread_mutex_unlock(&g_activeDrawing.mutex);
 }
 
 // 清空/解除当前活跃图纸关联
 extern "C" void zwMobileGuardClearActiveDrawing(void) {
   pthread_mutex_lock(&g_activeDrawing.mutex);
-    clearActiveDrawingInternal();
+    // 清空活跃图纸数据
+    memset(&g_activeDrawing.info, 0, sizeof(g_activeDrawing.info));
+    // 同步快照数据
+    g_activeDrawingSnapshot = g_activeDrawing.info;
   pthread_mutex_unlock(&g_activeDrawing.mutex);
 }
 
@@ -69,16 +61,17 @@ extern "C" void zwMobileGuardAddBreadcrumb(const char *category, const char *act
     pthread_mutex_lock(&g_breadCrumbs.mutex);
     // 环形缓存操作路径
     // 从头开始存储，存满时覆盖起始位置，head记录最老路径的位置
-    int index = (g_breadCrumbs.head + g_breadCrumbs.count) % MAX_BREADCRUMBS;
-    if (g_breadCrumbs.count == MAX_BREADCRUMBS) {
+    BreadCrumbStore *store = &g_breadCrumbs.store;
+    int index = (store->head + store->count) % MAX_BREADCRUMBS;
+    if (store->count == MAX_BREADCRUMBS) {
         // 缓存已满，覆盖老数据，head指针前移
-        g_breadCrumbs.head = (g_breadCrumbs.head + 1) % MAX_BREADCRUMBS;
+        store->head = (store->head + 1) % MAX_BREADCRUMBS;
     } else {
         // 存储没满，直接增加计数
-        g_breadCrumbs.count++;
+        store->count++;
     }
     // 取出当前要写入位置的结构体
-    BreadCrumb *b = &g_breadCrumbs.items[index];
+    BreadCrumb *b = &store->items[index];
     
     // 获取时间戳并转换为本地时间
     time_t timeInterval;
@@ -93,6 +86,8 @@ extern "C" void zwMobileGuardAddBreadcrumb(const char *category, const char *act
     strncpy(b->category, category ? category : "NULL", sizeof(b->category) - 1);
     strncpy(b->action, action ? action : "NULL", sizeof(b->action) - 1);
     strncpy(b->details, details ? details : "", sizeof(b->details) - 1);
+    // 同步操作路径快照
+    g_breadCrumbSnapshot = g_breadCrumbs.store;
     
     pthread_mutex_unlock(&g_breadCrumbs.mutex);
 }

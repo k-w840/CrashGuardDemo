@@ -2,7 +2,7 @@
 #include "ZWMobileGuard.h"
 #include "ZWMobileGuardBacktrace.h"
 #include "ZWMobileGuardInternal.h"
-#include "ZWMobileGuardReport.h"
+#include "ZWMobileGuardRawReport.h"
 #include "ZWMobileGuardState.h"
 #include <cxxabi.h>
 #include <exception>
@@ -82,7 +82,7 @@ static void zwMobileGuardTerminateHandler(void) {
     snprintf(final_reason, sizeof(final_reason), "Type: %s, Message: %s", exceptionTypeName, strlen(message_buf) > 0 ? message_buf : "N/A");
     
     // 落盘写入
-    dumpToFile("C++ Uncaught Exception (std::terminate)", final_reason, crash_frames, crash_frames_count);
+    zwMobileGuardWriteReportInternal(ZWRawCrashTypeCPP, 0, nullptr, nullptr, "C++ Uncaught Exception (std::terminate)", final_reason, crash_frames, crash_frames_count);
     
     // 转发给原本的 terminate 处理器
     if (g_sdkConfig.originalTerminateHandler) {
