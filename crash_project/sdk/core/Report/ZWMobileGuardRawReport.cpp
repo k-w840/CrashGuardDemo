@@ -280,18 +280,17 @@ static void safeWriteUint(int fd, uintptr_t val, int base) {
     write(fd, buf, j);
 }
 
-// 写入16进制数字
-static void safeWriteHex(int fd, uintptr_t val) {
-    safeWriteStr(fd, "0x");
-    safeWriteUint(fd, val, 16);
-}
-
 // 写入10进制数字
 static void safeWriteDec(int fd, long val) {
     if (val < 0) {
         safeWriteStr(fd, "-");
         val = -val;
     }
+    safeWriteUint(fd, (uintptr_t)val, 10);
+}
+
+// 写入无符号64位10进制数字，和 KSCrash 的 JSON number 口径保持一致
+static void safeWriteUInt64Dec(int fd, uint64_t val) {
     safeWriteUint(fd, (uintptr_t)val, 10);
 }
 
@@ -349,15 +348,17 @@ void zwMobileGuardWriteJSONReport(const ZWRawCrashReport *report, const char *fi
     for (uint32_t i = 0; i < g_binaryImageCount; ++i) {
         const ZWRawBinaryImage *img = &g_binaryImages[i];
         safeWriteStr(fd, "      {\n        \"image_addr\": ");
-        safeWriteHex(fd, img->base);
+        safeWriteUInt64Dec(fd, img->base);
         safeWriteStr(fd, ",\n        \"image_size\": ");
         safeWriteDec(fd, img->size);
         safeWriteStr(fd, ",\n        \"uuid\": \"");
         safeWriteEscaped(fd, img->uuid);
         safeWriteStr(fd, "\",\n        \"name\": \"");
         safeWriteEscaped(fd, img->name);
+        safeWriteStr(fd, "\",\n        \"path\": \"");
+        safeWriteEscaped(fd, img->path);
         safeWriteStr(fd, "\",\n        \"image_vmaddr\": ");
-        safeWriteHex(fd, img->base);
+        safeWriteUInt64Dec(fd, img->base);
         safeWriteStr(fd, "\n      }");
         if (i + 1 < g_binaryImageCount) {
             safeWriteStr(fd, ",\n");
@@ -391,7 +392,7 @@ void zwMobileGuardWriteJSONReport(const ZWRawCrashReport *report, const char *fi
 
     // 4.1 report.crash.error 异常错误分类
     safeWriteStr(fd, "      \"error\": {\n        \"address\": ");
-    safeWriteHex(fd, report->header.faultAddress);
+    safeWriteUInt64Dec(fd, report->header.faultAddress);
     safeWriteStr(fd, ",\n");
     if (report->header.crashType == ZWRawCrashTypeCPP) {
         safeWriteStr(fd, "        \"type\": \"cpp_exception\",\n        \"cpp_exception\": {\n          \"class\": \"");
@@ -423,7 +424,7 @@ void zwMobileGuardWriteJSONReport(const ZWRawCrashReport *report, const char *fi
     safeWriteStr(fd, "          \"backtrace\": {\n            \"contents\": [\n");
     for (uint32_t i = 0; i < report->header.frameCount; ++i) {
         safeWriteStr(fd, "              {\n                \"instruction_addr\": ");
-        safeWriteHex(fd, report->frames[i]);
+        safeWriteUInt64Dec(fd, report->frames[i]);
         safeWriteStr(fd, "\n              }");
         if (i + 1 < report->header.frameCount) {
             safeWriteStr(fd, ",\n");
@@ -435,15 +436,15 @@ void zwMobileGuardWriteJSONReport(const ZWRawCrashReport *report, const char *fi
 
     // 4.2.2 崩溃现场寄存器快照
     safeWriteStr(fd, "          \"registers\": {\n            \"basic\": {\n              \"pc\": ");
-    safeWriteHex(fd, report->registers.pc);
+    safeWriteUInt64Dec(fd, report->registers.pc);
     safeWriteStr(fd, ",\n              \"sp\": ");
-    safeWriteHex(fd, report->registers.sp);
+    safeWriteUInt64Dec(fd, report->registers.sp);
     safeWriteStr(fd, ",\n              \"lr\": ");
-    safeWriteHex(fd, report->registers.lr);
+    safeWriteUInt64Dec(fd, report->registers.lr);
     safeWriteStr(fd, ",\n              \"fp\": ");
-    safeWriteHex(fd, report->registers.fp);
+    safeWriteUInt64Dec(fd, report->registers.fp);
     safeWriteStr(fd, ",\n              \"cpsr\": ");
-    safeWriteHex(fd, report->registers.cpsr);
+    safeWriteUInt64Dec(fd, report->registers.cpsr);
 
 #if defined(__arm64__) || defined(__aarch64__)
     safeWriteStr(fd, ",\n");
@@ -451,7 +452,7 @@ void zwMobileGuardWriteJSONReport(const ZWRawCrashReport *report, const char *fi
         safeWriteStr(fd, "              \"x");
         safeWriteDec(fd, i);
         safeWriteStr(fd, "\": ");
-        safeWriteHex(fd, report->registers.x[i]);
+        safeWriteUInt64Dec(fd, report->registers.x[i]);
         if (i < 28) {
             safeWriteStr(fd, ",\n");
         } else {
@@ -462,9 +463,9 @@ void zwMobileGuardWriteJSONReport(const ZWRawCrashReport *report, const char *fi
     safeWriteStr(fd, "\n");
 #endif
     safeWriteStr(fd, "            },\n            \"exception\": {\n              \"esr\": ");
-    safeWriteHex(fd, report->registers.esr);
+    safeWriteUInt64Dec(fd, report->registers.esr);
     safeWriteStr(fd, ",\n              \"far\": ");
-    safeWriteHex(fd, report->registers.far);
+    safeWriteUInt64Dec(fd, report->registers.far);
     safeWriteStr(fd, "\n            }\n          }\n        }\n      ]\n    },\n");
 
     // 5. report.user 自定义轨迹与业务上下文
