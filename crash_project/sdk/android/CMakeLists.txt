@@ -6,8 +6,15 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_library(ZWCADGuard STATIC
-    ../core/dwg_guard.cpp
-    ../core/dwg_guard_backtrace.cpp
+    ../core/ZWMobileGuard.cpp
+    ../core/Backtrace/ZWMobileGuardBacktrace.cpp
+    ../core/Config/ZWMobileGuardInternal.cpp
+    ../core/Config/ZWMobileGuardState.cpp
+    ../core/Monitor/ZWMobileGuardPOSIX.cpp
+    ../core/Monitor/ZWMobileGuardThrow.cpp
+    ../core/Record/ZWMobileGuardContext.cpp
+    ../core/Record/ZWMobileGuardExceptionRecord.cpp
+    ../core/Report/ZWMobileGuardRawReport.cpp
     zwcad_guard_jni.cpp
     cxa_throw_hook.cpp
 )
@@ -15,6 +22,11 @@ add_library(ZWCADGuard STATIC
 target_include_directories(ZWCADGuard PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/../core
+    ${CMAKE_CURRENT_SOURCE_DIR}/../core/Backtrace
+    ${CMAKE_CURRENT_SOURCE_DIR}/../core/Config
+    ${CMAKE_CURRENT_SOURCE_DIR}/../core/Monitor
+    ${CMAKE_CURRENT_SOURCE_DIR}/../core/Record
+    ${CMAKE_CURRENT_SOURCE_DIR}/../core/Report
 )
 
 find_library(log-lib log)

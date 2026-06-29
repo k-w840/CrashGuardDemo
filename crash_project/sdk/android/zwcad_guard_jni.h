@@ -10,10 +10,10 @@ extern "C" {
 /*
  * Class:     com_zwsoft_zwcadguard_ZWCADGuard
  * Method:    nativeInit
- * Signature: (Ljava/lang/String;)I
+ * Signature: (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)I
  */
 JNIEXPORT jint JNICALL Java_com_zwsoft_zwcadguard_ZWCADGuard_nativeInit
-  (JNIEnv *, jclass, jstring);
+  (JNIEnv *, jclass, jstring, jstring, jstring, jstring, jstring, jstring, jstring, jstring);
 
 /*
  * Class:     com_zwsoft_zwcadguard_ZWCADGuard

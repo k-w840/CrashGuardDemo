@@ -1,6 +1,9 @@
 package com.zwsoft.zwcadguard;
 
 import android.content.Context;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.os.Build;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -17,7 +20,28 @@ public final class ZWCADGuard {
             return true;
         }
 
-        nativeInit(logDir);
+        Context appContext = context.getApplicationContext();
+        String packageName = appContext.getPackageName();
+        String processName = appContext.getApplicationInfo().processName;
+        String processPath = appContext.getApplicationInfo().sourceDir;
+        String versionName = "";
+        String versionCode = "";
+
+        try {
+            PackageInfo packageInfo = appContext.getPackageManager().getPackageInfo(packageName, 0);
+            versionName = packageInfo.versionName != null ? packageInfo.versionName : "";
+            versionCode = String.valueOf(packageInfo.getLongVersionCode());
+        } catch (PackageManager.NameNotFoundException ignored) {
+        }
+
+        nativeInit(logDir,
+                processName,
+                processPath,
+                packageName,
+                versionName,
+                versionCode,
+                Build.VERSION.RELEASE,
+                Build.MANUFACTURER + " " + Build.MODEL);
         installJavaExceptionHandler();
         addBreadcrumb("App", "Launch", "Android SDK initialized");
         initialized = true;
@@ -75,7 +99,14 @@ public final class ZWCADGuard {
                 stringWriter.toString());
     }
 
-    private static native int nativeInit(String logDir);
+    private static native int nativeInit(String logDir,
+                                         String processName,
+                                         String processPath,
+                                         String bundleId,
+                                         String appVersion,
+                                         String buildVersion,
+                                         String osVersion,
+                                         String deviceModel);
 
     private static native void nativeSetActiveDrawing(String name, String path, long size, String hash);
 

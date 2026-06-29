@@ -6,6 +6,12 @@ android {
     namespace "com.zwsoft.zwcadguard.demo"
     compileSdk 34
 
+    sourceSets {
+        main {
+            java.srcDirs += ["../../../../sdk/android/java"]
+        }
+    }
+
     defaultConfig {
         applicationId "com.zwsoft.zwcadguard.demo"
         minSdk 24

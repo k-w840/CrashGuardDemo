@@ -57,11 +57,12 @@ iOS / Android 都围绕 `__cxa_throw` 记录原始 `throw` 现场，避免异常
 - iOS：Objective-C++ 边界用 `try/catch` 拦截 C++ 异常
 - Android：JNI 边界统一包装，用 `try/catch` 把 C++ 异常转换为 Java pending exception
 
-Android 侧当前提供了 [zwcad_jni_guard.h](/Users/kwb/Downloads/开题报告/未命名文件夹/crash_project/sdk/android/zwcad_jni_guard.h)，用于统一包装 JNI 导出函数。
+Android 侧当前提供了 [zwcad_jni_guard.h](/Users/kwb/CrashGuardDemo/crash_project/sdk/android/zwcad_jni_guard.h)，用于统一包装 JNI 导出函数。
 
 Android 侧接入说明见：
 
-- [sdk/android/README.md](/Users/kwb/Downloads/开题报告/未命名文件夹/crash_project/sdk/android/README.md)
+- [sdk/android/README.md](/Users/kwb/CrashGuardDemo/crash_project/sdk/android/README.md)
+- [demo/android/Android符号化说明.md](/Users/kwb/CrashGuardDemo/crash_project/demo/android/Android符号化说明.md)
 
 ### 3. 崩溃兜底
 
