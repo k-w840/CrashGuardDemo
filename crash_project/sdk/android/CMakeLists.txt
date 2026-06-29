@@ -14,7 +14,11 @@ add_library(ZWCADGuard STATIC
     ../core/Monitor/ZWMobileGuardThrow.cpp
     ../core/Record/ZWMobileGuardContext.cpp
     ../core/Record/ZWMobileGuardExceptionRecord.cpp
+    ../core/Report/KSJsonUtil/KSFileUtils.c
+    ../core/Report/KSJsonUtil/KSJSONCodec.c
+    ../core/Report/ZWMobileGuardBinaryImages.cpp
     ../core/Report/ZWMobileGuardRawReport.cpp
+    ../core/Report/ZWMobileGuardReportJSON.cpp
     zwcad_guard_jni.cpp
     cxa_throw_hook.cpp
 )
@@ -27,6 +31,7 @@ target_include_directories(ZWCADGuard PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/../core/Monitor
     ${CMAKE_CURRENT_SOURCE_DIR}/../core/Record
     ${CMAKE_CURRENT_SOURCE_DIR}/../core/Report
+    ${CMAKE_CURRENT_SOURCE_DIR}/../core/Report/KSJsonUtil
 )
 
 find_library(log-lib log)

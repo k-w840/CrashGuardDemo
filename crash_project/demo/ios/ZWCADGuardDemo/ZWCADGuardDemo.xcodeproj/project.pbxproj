@@ -32,8 +32,15 @@
 		CC1EF8F12FE7C5DF001FFE9C /* StaticTabBarController.m in Sources */ = {isa = PBXBuildFile; fileRef = CC1EF8F02FE7C5DF001FFE9C /* StaticTabBarController.m */; };
 		CC1EF8F52FE7D1CC001FFE9C /* CrashDemoUtil.m in Sources */ = {isa = PBXBuildFile; fileRef = CC1EF8F42FE7D1CC001FFE9C /* CrashDemoUtil.m */; };
 		CC1EF8FA2FE7D1DD001FFE9C /* LogReportViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = CC1EF8F92FE7D1DD001FFE9C /* LogReportViewController.m */; };
-		CCBB81492FF0F34000BCC8F1 /* ZWMobileGuardRawReport.h in Headers */ = {isa = PBXBuildFile; fileRef = CCBB81422FF0F34000BCC8F1 /* ZWMobileGuardRawReport.h */; };
-		CCBB814E2FF0F34000BCC8F1 /* ZWMobileGuardRawReport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CCBB81432FF0F34000BCC8F1 /* ZWMobileGuardRawReport.cpp */; };
+		CCBBBE1F2FF2DD2600E0E1D9 /* ZWMobileGuardReportJSON.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CCBBBE1D2FF2DD2600E0E1D9 /* ZWMobileGuardReportJSON.cpp */; };
+		CCBBBE202FF2DD2600E0E1D9 /* ZWMobileGuardRawReport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CCBBBE1B2FF2DD2600E0E1D9 /* ZWMobileGuardRawReport.cpp */; };
+		CCBBBE212FF2DD2600E0E1D9 /* KSJSONCodec.c in Sources */ = {isa = PBXBuildFile; fileRef = CCBBBE172FF2DD2600E0E1D9 /* KSJSONCodec.c */; };
+		CCBBBE222FF2DD2600E0E1D9 /* KSFileUtils.c in Sources */ = {isa = PBXBuildFile; fileRef = CCBBBE152FF2DD2600E0E1D9 /* KSFileUtils.c */; };
+		CCBBBE232FF2DD2600E0E1D9 /* ZWMobileGuardBinaryImages.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CCBBBE192FF2DD2600E0E1D9 /* ZWMobileGuardBinaryImages.cpp */; };
+		CCBBBE242FF2DD2600E0E1D9 /* KSJSONCodec.h in Headers */ = {isa = PBXBuildFile; fileRef = CCBBBE162FF2DD2600E0E1D9 /* KSJSONCodec.h */; };
+		CCBBBE252FF2DD2600E0E1D9 /* ZWMobileGuardRawReport.h in Headers */ = {isa = PBXBuildFile; fileRef = CCBBBE1A2FF2DD2600E0E1D9 /* ZWMobileGuardRawReport.h */; };
+		CCBBBE262FF2DD2600E0E1D9 /* ZWMobileGuardReportJSON.h in Headers */ = {isa = PBXBuildFile; fileRef = CCBBBE1C2FF2DD2600E0E1D9 /* ZWMobileGuardReportJSON.h */; };
+		CCBBBE272FF2DD2600E0E1D9 /* KSFileUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = CCBBBE142FF2DD2600E0E1D9 /* KSFileUtils.h */; };
 		DE14CFC647DF150828275404 /* libZWCADGuard.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 008DD5BC77CCD53883AA656D /* libZWCADGuard.a */; };
 		DE22CCE2380391F19EA4B8CD /* ZWMobileIOSGuard.mm in Sources */ = {isa = PBXBuildFile; fileRef = 019B86DC45114EE39CBCD93F /* ZWMobileIOSGuard.mm */; };
 		F6832C566BF0A9BE1C6192F7 /* Pods_ZWCADGuardDemo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B14E7F247DE0905C6C5FD4F /* Pods_ZWCADGuardDemo.framework */; };
@@ -87,8 +94,15 @@
 		CC1EF8F42FE7D1CC001FFE9C /* CrashDemoUtil.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CrashDemoUtil.m; sourceTree = "<group>"; };
 		CC1EF8F82FE7D1DD001FFE9C /* LogReportViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LogReportViewController.h; sourceTree = "<group>"; };
 		CC1EF8F92FE7D1DD001FFE9C /* LogReportViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LogReportViewController.m; sourceTree = "<group>"; };
-		CCBB81422FF0F34000BCC8F1 /* ZWMobileGuardRawReport.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZWMobileGuardRawReport.h; sourceTree = "<group>"; };
-		CCBB81432FF0F34000BCC8F1 /* ZWMobileGuardRawReport.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ZWMobileGuardRawReport.cpp; sourceTree = "<group>"; };
+		CCBBBE142FF2DD2600E0E1D9 /* KSFileUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = KSFileUtils.h; sourceTree = "<group>"; };
+		CCBBBE152FF2DD2600E0E1D9 /* KSFileUtils.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = KSFileUtils.c; sourceTree = "<group>"; };
+		CCBBBE162FF2DD2600E0E1D9 /* KSJSONCodec.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = KSJSONCodec.h; sourceTree = "<group>"; };
+		CCBBBE172FF2DD2600E0E1D9 /* KSJSONCodec.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = KSJSONCodec.c; sourceTree = "<group>"; };
+		CCBBBE192FF2DD2600E0E1D9 /* ZWMobileGuardBinaryImages.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ZWMobileGuardBinaryImages.cpp; sourceTree = "<group>"; };
+		CCBBBE1A2FF2DD2600E0E1D9 /* ZWMobileGuardRawReport.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZWMobileGuardRawReport.h; sourceTree = "<group>"; };
+		CCBBBE1B2FF2DD2600E0E1D9 /* ZWMobileGuardRawReport.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ZWMobileGuardRawReport.cpp; sourceTree = "<group>"; };
+		CCBBBE1C2FF2DD2600E0E1D9 /* ZWMobileGuardReportJSON.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZWMobileGuardReportJSON.h; sourceTree = "<group>"; };
+		CCBBBE1D2FF2DD2600E0E1D9 /* ZWMobileGuardReportJSON.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ZWMobileGuardReportJSON.cpp; sourceTree = "<group>"; };
 		DA9C1601313CD3CEA3ED71F5 /* cxa_throw_hook.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = cxa_throw_hook.cpp; path = ../../../sdk/ios/cxa_throw_hook.cpp; sourceTree = "<group>"; };
 		E153575F96EAA4AA0640F006 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		E8D0484031E688AC32E51593 /* Pods-ZWCADGuardDemo.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ZWCADGuardDemo.release.xcconfig"; path = "Target Support Files/Pods-ZWCADGuardDemo/Pods-ZWCADGuardDemo.release.xcconfig"; sourceTree = "<group>"; };
@@ -210,11 +224,26 @@
 			path = Demo;
 			sourceTree = "<group>";
 		};
-		CCBB81482FF0F34000BCC8F1 /* Report */ = {
+		CCBBBE182FF2DD2600E0E1D9 /* KSJsonUtil */ = {
 			isa = PBXGroup;
 			children = (
-				CCBB81422FF0F34000BCC8F1 /* ZWMobileGuardRawReport.h */,
-				CCBB81432FF0F34000BCC8F1 /* ZWMobileGuardRawReport.cpp */,
+				CCBBBE142FF2DD2600E0E1D9 /* KSFileUtils.h */,
+				CCBBBE152FF2DD2600E0E1D9 /* KSFileUtils.c */,
+				CCBBBE162FF2DD2600E0E1D9 /* KSJSONCodec.h */,
+				CCBBBE172FF2DD2600E0E1D9 /* KSJSONCodec.c */,
+			);
+			path = KSJsonUtil;
+			sourceTree = "<group>";
+		};
+		CCBBBE1E2FF2DD2600E0E1D9 /* Report */ = {
+			isa = PBXGroup;
+			children = (
+				CCBBBE182FF2DD2600E0E1D9 /* KSJsonUtil */,
+				CCBBBE192FF2DD2600E0E1D9 /* ZWMobileGuardBinaryImages.cpp */,
+				CCBBBE1A2FF2DD2600E0E1D9 /* ZWMobileGuardRawReport.h */,
+				CCBBBE1B2FF2DD2600E0E1D9 /* ZWMobileGuardRawReport.cpp */,
+				CCBBBE1C2FF2DD2600E0E1D9 /* ZWMobileGuardReportJSON.h */,
+				CCBBBE1D2FF2DD2600E0E1D9 /* ZWMobileGuardReportJSON.cpp */,
 			);
 			name = Report;
 			path = /Users/kwb/CrashGuardDemo/crash_project/sdk/core/Report;
@@ -232,7 +261,7 @@
 		FD87A47350CEB063C64DC347 /* SDK */ = {
 			isa = PBXGroup;
 			children = (
-				CCBB81482FF0F34000BCC8F1 /* Report */,
+				CCBBBE1E2FF2DD2600E0E1D9 /* Report */,
 				CC16D2022FEEDE6D00954489 /* Config */,
 				CC16D2072FEEDE6D00954489 /* Monitor */,
 				CC16D20C2FEEDE6D00954489 /* Record */,
@@ -260,8 +289,11 @@
 				CC16D2122FEEDE6D00954489 /* ZWMobileGuardThrow.h in Headers */,
 				CC16D2142FEEDE6D00954489 /* ZWMobileGuardInternal.h in Headers */,
 				CC16D2152FEEDE6D00954489 /* ZWMobileGuardState.h in Headers */,
-				CCBB81492FF0F34000BCC8F1 /* ZWMobileGuardRawReport.h in Headers */,
 				CC16D2162FEEDE6D00954489 /* ZWMobileGuardExceptionRecord.h in Headers */,
+				CCBBBE242FF2DD2600E0E1D9 /* KSJSONCodec.h in Headers */,
+				CCBBBE252FF2DD2600E0E1D9 /* ZWMobileGuardRawReport.h in Headers */,
+				CCBBBE262FF2DD2600E0E1D9 /* ZWMobileGuardReportJSON.h in Headers */,
+				CCBBBE272FF2DD2600E0E1D9 /* KSFileUtils.h in Headers */,
 				CC16D1FD2FEEDE3C00954489 /* ZWMobileGuardBacktrace.h in Headers */,
 				CC16D21F2FEEDEBE00954489 /* fishhook.h in Headers */,
 			);
@@ -400,12 +432,16 @@
 				2B8C9D232FEE19B80099B25D /* fishhook.c in Sources */,
 				7DAD3C5A6D0FD77E325A0B29 /* ZWMobileGuard.cpp in Sources */,
 				DE22CCE2380391F19EA4B8CD /* ZWMobileIOSGuard.mm in Sources */,
-				CCBB814E2FF0F34000BCC8F1 /* ZWMobileGuardRawReport.cpp in Sources */,
 				CC16D2172FEEDE6D00954489 /* ZWMobileGuardContext.cpp in Sources */,
 				CC16D2182FEEDE6D00954489 /* ZWMobileGuardState.cpp in Sources */,
 				CC16D2192FEEDE6D00954489 /* ZWMobileGuardExceptionRecord.cpp in Sources */,
 				CC16D21A2FEEDE6D00954489 /* ZWMobileGuardInternal.cpp in Sources */,
 				CC16D21B2FEEDE6D00954489 /* ZWMobileGuardPOSIX.cpp in Sources */,
+				CCBBBE1F2FF2DD2600E0E1D9 /* ZWMobileGuardReportJSON.cpp in Sources */,
+				CCBBBE202FF2DD2600E0E1D9 /* ZWMobileGuardRawReport.cpp in Sources */,
+				CCBBBE212FF2DD2600E0E1D9 /* KSJSONCodec.c in Sources */,
+				CCBBBE222FF2DD2600E0E1D9 /* KSFileUtils.c in Sources */,
+				CCBBBE232FF2DD2600E0E1D9 /* ZWMobileGuardBinaryImages.cpp in Sources */,
 				CC16D21D2FEEDE6D00954489 /* ZWMobileGuardThrow.cpp in Sources */,
 				2B09A0A1E54572A68D76384C /* cxa_throw_hook.cpp in Sources */,
 			);

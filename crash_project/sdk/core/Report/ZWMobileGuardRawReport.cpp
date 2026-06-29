@@ -1,4 +1,5 @@
 #include "ZWMobileGuardRawReport.h"
+#include "ZWMobileGuardReportJSON.h"
 #include "ZWMobileGuardState.h"
 
 #ifndef _XOPEN_SOURCE
@@ -17,13 +18,7 @@
 #include <unistd.h>
 
 #ifdef __APPLE__
-#include <mach-o/dyld.h>
-#include <mach-o/loader.h>
-#include <mach/machine.h>
 #include <ucontext.h>
-#include <uuid/uuid.h>
-#include <mach/mach.h>
-#include <sys/mount.h>
 #endif
 
 ZWRawAppInfo g_appInfo = {{0}};
@@ -69,7 +64,7 @@ static char *appendUint64Dec(char *cursor, const char *end, uint64_t value) {
     return cursor;
 }
 
-// 根据时间戳和pid，创建 crash 文件路径
+// 根据时间戳和pid,创建 crash 文件路径
 static void buildRawCrashFilePath(char *buffer, size_t bufferSize, uint64_t timestampUs, int pid) {
     if (buffer == nullptr || bufferSize <= 0) {
         return;
@@ -83,74 +78,6 @@ static void buildRawCrashFilePath(char *buffer, size_t bufferSize, uint64_t time
     buffer = appendUint64Dec(buffer, end, (uint64_t)(uint32_t)pid);
     buffer = appendLiteral(buffer, end, ".json");
     *buffer = '\0';
-}
-
-#ifdef __APPLE__
-static uintptr_t firstCmdAfterHeader(const struct mach_header *const header) {
-    switch (header->magic) {
-        case MH_MAGIC:
-        case MH_CIGAM:
-            return (uintptr_t)(header + 1);
-        case MH_MAGIC_64:
-        case MH_CIGAM_64:
-            return (uintptr_t)(((struct mach_header_64 *)header) + 1);
-        default:
-            return 0;
-    }
-}
-
-static void parseMachHeader(const struct mach_header *header, intptr_t slide, ZWRawBinaryImage *image) {
-    if (header == nullptr || image == nullptr) {
-        return;
-    }
-
-    uintptr_t cmdPtr = firstCmdAfterHeader(header);
-    if (cmdPtr == 0) {
-        return;
-    }
-
-    uint64_t imageSize = 0;
-
-    for (uint32_t i = 0; i < header->ncmds; ++i) {
-        struct load_command *command = (struct load_command *)cmdPtr;
-        // 设置uuid
-        if (command->cmd == LC_UUID) {
-            struct uuid_command *uuidCommand = (struct uuid_command *)cmdPtr;
-            uuid_unparse_upper(uuidCommand->uuid, image->uuid);
-        } else if (command->cmd == LC_SEGMENT_64) {
-            struct segment_command_64 *segment = (struct segment_command_64 *)cmdPtr;
-            // 参照 KSCrash 的做法：仅以 __TEXT 段大小作为二进制文件的 size
-            if (strcmp(segment->segname, SEG_TEXT) == 0) {
-                imageSize = segment->vmsize;
-            }
-        } else if (command->cmd == LC_SEGMENT) {
-            struct segment_command *segment = (struct segment_command *)cmdPtr;
-            if (strcmp(segment->segname, SEG_TEXT) == 0) {
-                imageSize = segment->vmsize;
-            }
-        }
-        if (command->cmdsize == 0) {
-            break;
-        }
-        cmdPtr += command->cmdsize;
-    }
-
-    // 参照 KSCrash 的做法：加载地址直接用 header 头部指针
-    image->base = (uintptr_t)header;
-    image->size = imageSize;
-
-    // 动态库架构设置
-    switch (header->cputype) {
-        case CPU_TYPE_ARM64:
-            snprintf(image->arch, sizeof(image->arch), "%s", "arm64");
-            break;
-        case CPU_TYPE_X86_64:
-            snprintf(image->arch, sizeof(image->arch), "%s", "x86_64");
-            break;
-        default:
-            snprintf(image->arch, sizeof(image->arch), "%s", "unknown");
-            break;
-    }
 }
 
 static void captureRegisters(void *context, ZWRawArm64Registers *registers) {
@@ -186,8 +113,6 @@ static void captureRegisters(void *context, ZWRawArm64Registers *registers) {
     registers->sp = (uint64_t)machineContext->__ss.__rsp;
 #endif
 }
-#endif
-
 // 初始化基础 App 信息
 void zwMobileGuardRawReportInit(const char *processName, const char *processPath, const char *bundleId, const char *appVersion, const char *buildVersion, const char *osVersion, const char *deviceModel) {
     // 获取进程id
@@ -210,310 +135,8 @@ void zwMobileGuardRawReportInit(const char *processName, const char *processPath
 #endif
 }
 
-void zwMobileGuardRefreshBinaryImages(void) {
-#ifdef __APPLE__
-
-    if (g_binaryImages) {
-        free(g_binaryImages);
-    }
-    // 获取准确的动态库总量
-    uint32_t imageCount = _dyld_image_count();
-    g_binaryImages = (ZWRawBinaryImage *)calloc(imageCount, sizeof(ZWRawBinaryImage));
-    g_binaryImageCount = imageCount;
-
-    for (uint32_t i = 0; i < imageCount; ++i) {
-        ZWRawBinaryImage *image = &g_binaryImages[i];
-        // 设置基地址、大小、uuid等信息
-        parseMachHeader(_dyld_get_image_header(i), _dyld_get_image_vmaddr_slide(i), image);
-        const char *path = _dyld_get_image_name(i);
-        snprintf(image->path, sizeof(image->path), "%s", path ? path : "");
-        // 从后向前查找/，路径中最后一个是名字
-        const char *last = strrchr(path, '/');
-        snprintf(image->name, sizeof(image->name), "%s", last ? last + 1 : path);
-    }
-#else
-    g_binaryImageCount = 0;
-#endif
-}
-
-#pragma mark - 写入辅助函数
-// 将 reportId 转换大写字符串
-static void safeFormatUuid(const unsigned char *uuid, char *outStr) {
-    static const char hexChars[] = "0123456789ABCDEF";
-    int dest = 0;
-    for (int i = 0; i < 16; ++i) {
-        if (i == 4 || i == 6 || i == 8 || i == 10) {
-            outStr[dest++] = '-';
-        }
-        outStr[dest++] = hexChars[(uuid[i] >> 4) & 0x0F];
-        outStr[dest++] = hexChars[uuid[i] & 0x0F];
-    }
-    outStr[dest] = '\0';
-}
-
-// 向打开的文件描述符中写入指定数据
-static void safeWriteStr(int fd, const char *str) {
-    if (str) {
-        write(fd, str, strlen(str));
-    }
-}
-
-// 10/16进制数字转为字符存入
-static void safeWriteUint(int fd, uintptr_t val, int base) {
-    char buf[32];
-    char temp[32];
-    int i = 0;
-    if (val == 0) {
-        temp[i++] = '0';
-    } else {
-        while (val > 0) {
-            int rem = val % base;
-            temp[i++] = (rem < 10) ? (rem + '0') : (rem - 10 + 'a');
-            val /= base;
-        }
-    }
-    int j = 0;
-    while (i > 0) {
-        buf[j++] = temp[--i];
-    }
-    buf[j] = '\0';
-    write(fd, buf, j);
-}
-
-// 写入10进制数字
-static void safeWriteDec(int fd, long val) {
-    if (val < 0) {
-        safeWriteStr(fd, "-");
-        val = -val;
-    }
-    safeWriteUint(fd, (uintptr_t)val, 10);
-}
-
-// 写入无符号64位10进制数字，和 KSCrash 的 JSON number 口径保持一致
-static void safeWriteUInt64Dec(int fd, uint64_t val) {
-    safeWriteUint(fd, (uintptr_t)val, 10);
-}
-
-// 写入经过 JSON 字符转义的字符串，保证 JSON 语法的合法性
-static void safeWriteEscaped(int fd, const char *str) {
-    if (str == nullptr) return;
-    while (*str != '\0') {
-        char c = *str++;
-        if (c == '"' || c == '\\') {
-            char esc[2] = {'\\', c};
-            write(fd, esc, 2);
-        } else if (c == '\n') {
-            write(fd, "\\n", 2);
-        } else if (c == '\r') {
-            write(fd, "\\r", 2);
-        } else if (c == '\t') {
-            write(fd, "\\t", 2);
-        } else if ((unsigned char)c < 0x20) {
-            write(fd, " ", 1);
-        } else {
-            write(fd, &c, 1);
-        }
-    }
-}
-
-void zwMobileGuardWriteJSONReport(const ZWRawCrashReport *report, const char *filePath) {
-    int fd = open(filePath, O_CREAT | O_WRONLY | O_TRUNC, 0644);
-    if (fd < 0) {
-        return;
-    }
-
-    // 构造符合 KSCrash 规范 of Report ID
-    uuid_t reportId;
-    memset(reportId, 0, sizeof(reportId));
-    uint64_t ts = report->header.crashTimestamp;
-    int pidVal = report->appInfo.pid;
-    memcpy(reportId, &ts, sizeof(ts));
-    memcpy(reportId + 8, &pidVal, sizeof(pidVal));
-    char reportIdStr[64];
-    safeFormatUuid(reportId, reportIdStr);
-
-    safeWriteStr(fd, "{\n  \"report\": {\n");
-
-    // 1. report.report 元数据
-    safeWriteStr(fd, "    \"report\": {\n      \"version\": \"3.3.0\",\n      \"id\": \"");
-    safeWriteEscaped(fd, reportIdStr);
-    safeWriteStr(fd, "\",\n      \"process_name\": \"");
-    safeWriteEscaped(fd, report->appInfo.processName);
-    safeWriteStr(fd, "\",\n      \"timestamp\": ");
-    safeWriteDec(fd, report->header.crashTimestamp / 1000000ULL);
-    safeWriteStr(fd, ",\n      \"type\": \"standard\"\n    },\n");
-
-    // 2. report.binary_images 动态库列表
-    safeWriteStr(fd, "    \"binary_images\": [\n");
-    for (uint32_t i = 0; i < g_binaryImageCount; ++i) {
-        const ZWRawBinaryImage *img = &g_binaryImages[i];
-        safeWriteStr(fd, "      {\n        \"image_addr\": ");
-        safeWriteUInt64Dec(fd, img->base);
-        safeWriteStr(fd, ",\n        \"image_size\": ");
-        safeWriteDec(fd, img->size);
-        safeWriteStr(fd, ",\n        \"uuid\": \"");
-        safeWriteEscaped(fd, img->uuid);
-        safeWriteStr(fd, "\",\n        \"name\": \"");
-        safeWriteEscaped(fd, img->name);
-        safeWriteStr(fd, "\",\n        \"path\": \"");
-        safeWriteEscaped(fd, img->path);
-        safeWriteStr(fd, "\",\n        \"image_vmaddr\": ");
-        safeWriteUInt64Dec(fd, img->base);
-        safeWriteStr(fd, "\n      }");
-        if (i + 1 < g_binaryImageCount) {
-            safeWriteStr(fd, ",\n");
-        } else {
-            safeWriteStr(fd, "\n");
-        }
-    }
-    safeWriteStr(fd, "    ],\n");
-
-    // 3. report.system 系统和硬件/内存信息
-    safeWriteStr(fd, "    \"system\": {\n      \"CFBundleIdentifier\": \"");
-    safeWriteEscaped(fd, report->appInfo.bundleId);
-    safeWriteStr(fd, "\",\n      \"CFBundleShortVersionString\": \"");
-    safeWriteEscaped(fd, report->appInfo.appVersion);
-    safeWriteStr(fd, "\",\n      \"CFBundleVersion\": \"");
-    safeWriteEscaped(fd, report->appInfo.buildVersion);
-    safeWriteStr(fd, "\",\n      \"os_version\": \"");
-    safeWriteEscaped(fd, report->appInfo.osVersion);
-    safeWriteStr(fd, "\",\n      \"model\": \"");
-    safeWriteEscaped(fd, report->appInfo.deviceModel);
-    safeWriteStr(fd, "\",\n      \"cpu_arch\": \"");
-    safeWriteEscaped(fd, report->appInfo.codeType);
-    safeWriteStr(fd, "\",\n      \"process_name\": \"");
-    safeWriteEscaped(fd, report->appInfo.processName);
-    safeWriteStr(fd, "\",\n      \"process_id\": ");
-    safeWriteDec(fd, report->appInfo.pid);
-    safeWriteStr(fd, "\n    },\n");
-
-    // 4. report.crash 崩溃现场核心 (error 和 threads)
-    safeWriteStr(fd, "    \"crash\": {\n");
-
-    // 4.1 report.crash.error 异常错误分类
-    safeWriteStr(fd, "      \"error\": {\n        \"address\": ");
-    safeWriteUInt64Dec(fd, report->header.faultAddress);
-    safeWriteStr(fd, ",\n");
-    if (report->header.crashType == ZWRawCrashTypeCPP) {
-        safeWriteStr(fd, "        \"type\": \"cpp_exception\",\n        \"cpp_exception\": {\n          \"class\": \"");
-        safeWriteEscaped(fd, report->exceptionClass);
-        safeWriteStr(fd, "\",\n          \"name\": \"");
-        safeWriteEscaped(fd, report->exceptionClass);
-        safeWriteStr(fd, "\",\n          \"reason\": \"");
-        safeWriteEscaped(fd, report->exceptionReason);
-        safeWriteStr(fd, "\"\n        }\n");
-    } else if (report->header.crashType == ZWRawCrashTypeObjC || report->header.crashType == ZWRawCrashTypeManaged) {
-        safeWriteStr(fd, "        \"type\": \"nsexception\",\n        \"nsexception\": {\n          \"name\": \"");
-        safeWriteEscaped(fd, report->exceptionClass);
-        safeWriteStr(fd, "\",\n          \"reason\": \"");
-        safeWriteEscaped(fd, report->exceptionReason);
-        safeWriteStr(fd, "\"\n        }\n");
-    } else {
-        safeWriteStr(fd, "        \"type\": \"signal\",\n        \"signal\": {\n          \"signal\": ");
-        safeWriteDec(fd, report->header.signalNumber);
-        safeWriteStr(fd, ",\n          \"code\": ");
-        safeWriteDec(fd, report->header.signalCode);
-        safeWriteStr(fd, "\n        }\n");
-    }
-    safeWriteStr(fd, "      },\n");
-
-    // 4.2 report.crash.threads 线程调用栈
-    safeWriteStr(fd, "      \"threads\": [\n        {\n          \"crashed\": true,\n          \"current_thread\": true,\n          \"index\": 0,\n");
-
-    // 4.2.1 调用栈帧数组内容
-    safeWriteStr(fd, "          \"backtrace\": {\n            \"contents\": [\n");
-    for (uint32_t i = 0; i < report->header.frameCount; ++i) {
-        safeWriteStr(fd, "              {\n                \"instruction_addr\": ");
-        safeWriteUInt64Dec(fd, report->frames[i]);
-        safeWriteStr(fd, "\n              }");
-        if (i + 1 < report->header.frameCount) {
-            safeWriteStr(fd, ",\n");
-        } else {
-            safeWriteStr(fd, "\n");
-        }
-    }
-    safeWriteStr(fd, "            ]\n          },\n");
-
-    // 4.2.2 崩溃现场寄存器快照
-    safeWriteStr(fd, "          \"registers\": {\n            \"basic\": {\n              \"pc\": ");
-    safeWriteUInt64Dec(fd, report->registers.pc);
-    safeWriteStr(fd, ",\n              \"sp\": ");
-    safeWriteUInt64Dec(fd, report->registers.sp);
-    safeWriteStr(fd, ",\n              \"lr\": ");
-    safeWriteUInt64Dec(fd, report->registers.lr);
-    safeWriteStr(fd, ",\n              \"fp\": ");
-    safeWriteUInt64Dec(fd, report->registers.fp);
-    safeWriteStr(fd, ",\n              \"cpsr\": ");
-    safeWriteUInt64Dec(fd, report->registers.cpsr);
-
-#if defined(__arm64__) || defined(__aarch64__)
-    safeWriteStr(fd, ",\n");
-    for (int i = 0; i < 29; ++i) {
-        safeWriteStr(fd, "              \"x");
-        safeWriteDec(fd, i);
-        safeWriteStr(fd, "\": ");
-        safeWriteUInt64Dec(fd, report->registers.x[i]);
-        if (i < 28) {
-            safeWriteStr(fd, ",\n");
-        } else {
-            safeWriteStr(fd, "\n");
-        }
-    }
-#else
-    safeWriteStr(fd, "\n");
-#endif
-    safeWriteStr(fd, "            },\n            \"exception\": {\n              \"esr\": ");
-    safeWriteUInt64Dec(fd, report->registers.esr);
-    safeWriteStr(fd, ",\n              \"far\": ");
-    safeWriteUInt64Dec(fd, report->registers.far);
-    safeWriteStr(fd, "\n            }\n          }\n        }\n      ]\n    },\n");
-
-    // 5. report.user 自定义轨迹与业务上下文
-    safeWriteStr(fd, "    \"user\": {\n      \"breadcrumbs\": [\n");
-    for (uint32_t i = 0; i < report->header.breadcrumbCount; ++i) {
-        const BreadCrumb *bc = &report->breadcrumbs[i];
-        safeWriteStr(fd, "        {\n          \"time\": \"");
-        safeWriteEscaped(fd, bc->time_str);
-        safeWriteStr(fd, "\",\n          \"category\": \"");
-        safeWriteEscaped(fd, bc->category);
-        safeWriteStr(fd, "\",\n          \"action\": \"");
-        safeWriteEscaped(fd, bc->action);
-        safeWriteStr(fd, "\",\n          \"details\": \"");
-        safeWriteEscaped(fd, bc->details);
-        safeWriteStr(fd, "\"\n        }");
-        if (i + 1 < report->header.breadcrumbCount) {
-            safeWriteStr(fd, ",\n");
-        } else {
-            safeWriteStr(fd, "\n");
-        }
-    }
-    safeWriteStr(fd, "      ],\n      \"active_drawing\": {\n");
-
-    // 活跃图纸信息
-    const ActiveDrawingInfo *draw = &report->activeDrawing;
-    safeWriteStr(fd, "        \"name\": \"");
-    safeWriteEscaped(fd, draw->name);
-    safeWriteStr(fd, "\",\n        \"path\": \"");
-    safeWriteEscaped(fd, draw->path);
-    safeWriteStr(fd, "\",\n        \"size\": ");
-    safeWriteDec(fd, draw->size);
-    safeWriteStr(fd, ",\n        \"hash\": \"");
-    safeWriteEscaped(fd, draw->hash);
-    safeWriteStr(fd, "\",\n        \"file_id\": \"");
-    safeWriteEscaped(fd, draw->fileId);
-    safeWriteStr(fd, "\",\n        \"project_id\": \"");
-    safeWriteEscaped(fd, draw->projectId);
-    safeWriteStr(fd, "\",\n        \"project_name\": \"");
-    safeWriteEscaped(fd, draw->projectName);
-    safeWriteStr(fd, "\",\n        \"is_active\": ");
-    safeWriteStr(fd, draw->isActive ? "true" : "false");
-    safeWriteStr(fd, "\n      }\n    }\n  }\n}\n");
-
-    close(fd);
-}
-
 void zwMobileGuardWriteReportInternal(int crashType, int sig, siginfo_t *sigInfo, void *sigContext, const char *exceptionClass, const char *exceptionReason, void **frames, int frameCount) {
-    // 崩溃现场使用静态存储，防止信号处理器触发栈溢出
+    // 崩溃现场使用静态存储,防止信号处理器触发栈溢出
     static ZWRawCrashReport report;
     memset(&report, 0, sizeof(report));
 
