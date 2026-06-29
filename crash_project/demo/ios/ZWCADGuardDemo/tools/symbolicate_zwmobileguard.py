@@ -219,8 +219,8 @@ def symbolicate_group(arch: str, symbol_path: str, load_address: int, addresses:
         "-o",
         symbol_path,
         "-l",
-        str(load_address),
-    ] + [str(addr) for addr in addresses]
+        hex(load_address),
+    ] + [hex(addr) for addr in addresses]
 
     output = run_command(command)
     lines = [line.strip() for line in output.splitlines()]
