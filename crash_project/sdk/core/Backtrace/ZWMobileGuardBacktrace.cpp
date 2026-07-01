@@ -15,6 +15,7 @@
 
 #ifdef __APPLE__
 #include <execinfo.h>
+#include <mach/mach.h>
 #if __has_include(<sys/_types/_ucontext64.h>)
 #include <sys/_types/_ucontext64.h>
 #endif
@@ -44,6 +45,20 @@ struct ZWMobileGuardFrameEntry {
     uintptr_t returnAddress;
 };
 
+static bool copyMemorySafely(const void* source, void* destination, size_t size) {
+    if (source == nullptr || destination == nullptr || size == 0) {
+        return false;
+    }
+
+    vm_size_t bytesCopied = 0;
+    kern_return_t result = vm_read_overwrite(mach_task_self(),
+                                             (vm_address_t)source,
+                                             (vm_size_t)size,
+                                             (vm_address_t)destination,
+                                             &bytesCopied);
+    return result == KERN_SUCCESS && bytesCopied == size;
+}
+
 // 从 signal 上下文中提取 machine context
 static _STRUCT_MCONTEXT* machineContextFromSignalContext(void* signalUserContext) {
     if (signalUserContext == nullptr) {
@@ -60,6 +75,27 @@ static uintptr_t normalizeInstructionPointer(uintptr_t instructionPointer) {
 #else
     return instructionPointer;
 #endif
+}
+
+/** 参照 kscrash
+ * 移除指令地址中的指针标记位
+ * 在 armv7 架构上，最低位用于区分 Thumb 和普通模式
+ * 在 arm64 架构上，所有指令均为 4 字节长，4 的倍数在二进制上最后两位一定是 00,因此最低两位应始终为 0，四字节对齐
+ * 在 x86_64 和 i386 架构上，指令长度可变，因此所有位均有意义。
+ */
+static uintptr_t callInstructionAddress(uintptr_t returnAddress) {
+#if defined(__arm__)
+    uintptr_t normalized = normalizeInstructionPointer(returnAddress) & ~(1UL);
+#elif defined(__arm64__)
+    uintptr_t normalized = normalizeInstructionPointer(returnAddress) & ~(3UL);
+#else
+    uintptr_t normalized = normalizeInstructionPointer(returnAddress);
+#endif
+
+    if (normalized <= 1) {
+        return normalized;
+    }
+    return normalized - 1;
 }
 
 // 获取指令地址
@@ -169,10 +205,10 @@ extern "C" int zwMobileGuardCaptureSignalBacktrace(void* signalUserContext, void
         }
     }
     if (frameCount < maxFrames) {
-        // 获取链接地址（上一级调用者的返回地址，如 a 调用 b，即为 b 返回到 a 的指令地址）
+        // 获取链接地址（上一级调用者的返回地址，函数返回后要回去的位置，如 a 调用 b，即为 b 返回到 a 的指令地址）
         uintptr_t linkRegister = linkRegisterFromMachineContext(machineContext);
         if (linkRegister > 1) {
-            buffer[frameCount++] = (void*)normalizeInstructionPointer(linkRegister);
+            buffer[frameCount++] = (void*)callInstructionAddress(linkRegister);
         }
     }
 
@@ -187,14 +223,17 @@ extern "C" int zwMobileGuardCaptureSignalBacktrace(void* signalUserContext, void
             break;
         }
 
-        ZWMobileGuardFrameEntry currentFrame = *frame;
+        ZWMobileGuardFrameEntry currentFrame;
+        if (!copyMemorySafely(frame, &currentFrame, sizeof(currentFrame))) {
+            break;
+        }
         // 地址错误 || 上一个栈帧为自己，结束循环
         if (currentFrame.returnAddress == 0 || currentFrame.previous == frame) {
             break;
         }
         // 参照 kscrash 过滤明显无效地址
         if (currentFrame.returnAddress > 1) {
-            buffer[frameCount++] = (void*)normalizeInstructionPointer(currentFrame.returnAddress);
+            buffer[frameCount++] = (void*)callInstructionAddress(currentFrame.returnAddress);
         }
         // 无上一栈帧可结束过滤；栈是向低地址生长的，对不符合规律的过滤
         if (currentFrame.previous == nullptr || (uintptr_t)currentFrame.previous <= (uintptr_t)frame) {

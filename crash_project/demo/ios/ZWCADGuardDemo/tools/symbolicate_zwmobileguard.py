@@ -53,6 +53,7 @@ class Frame:
     index: int
     address: int
     image: Optional[BinaryImage]
+    atos_address: int
     symbol: Optional[str] = None
 
 
@@ -110,6 +111,23 @@ def parse_binary_images(report: dict) -> List[BinaryImage]:
     return images
 
 
+def normalize_instruction_address(address: int) -> int:
+    return address & 0x0000000FFFFFFFFF
+
+
+def call_instruction_address(address: int, arch: str) -> int:
+    normalized = normalize_instruction_address(address)
+    arch = (arch or "").lower()
+    if arch.startswith("arm64") or arch.startswith("aarch64"):
+        normalized &= ~0x3
+    elif arch.startswith("arm"):
+        normalized &= ~0x1
+
+    if normalized <= 1:
+        return normalized
+    return normalized - 1
+
+
 def find_image_for_address(images: Sequence[BinaryImage], address: int) -> Optional[BinaryImage]:
     for image in images:
         if image.base <= address < image.end:
@@ -117,16 +135,21 @@ def find_image_for_address(images: Sequence[BinaryImage], address: int) -> Optio
     return None
 
 
-def parse_frames(report: dict, images: Sequence[BinaryImage], thread_index: int) -> List[Frame]:
+def parse_frames(report: dict, images: Sequence[BinaryImage], thread_index: int, arch: str) -> List[Frame]:
     threads = report.get("report", {}).get("crash", {}).get("threads", [])
     if thread_index >= len(threads):
         raise IndexError(f"thread-index={thread_index} 超出范围，当前线程数为 {len(threads)}")
 
+    error_type = report.get("report", {}).get("crash", {}).get("error", {}).get("type", "")
     contents = threads[thread_index].get("backtrace", {}).get("contents", [])
     frames = []
     for idx, item in enumerate(contents):
         address = int(item.get("instruction_addr", 0))
-        frames.append(Frame(index=idx, address=address, image=find_image_for_address(images, address)))
+        atos_address = address
+        # signal 栈首帧通常就是 faulting PC，后续帧更接近“返回地址”，按 KSCrash 风格转成调用点更容易命中静态库内部符号。
+        if not (error_type == "signal" and idx == 0):
+            atos_address = call_instruction_address(address, arch)
+        frames.append(Frame(index=idx, address=address, image=find_image_for_address(images, address), atos_address=atos_address))
     return frames
 
 
@@ -248,8 +271,8 @@ def symbolicate_frames(
             continue
         key = (symbol_path, frame.image.base)
         grouped.setdefault(key, [])
-        if frame.address not in grouped[key]:
-            grouped[key].append(frame.address)
+        if frame.atos_address not in grouped[key]:
+            grouped[key].append(frame.atos_address)
         image_by_group[key] = frame.image
 
     resolved: Dict[int, str] = {}
@@ -266,8 +289,8 @@ def symbolicate_frames(
             notes.append(f"[符号化失败] image={image.name} path={symbol_path} error={exc}")
 
     for frame in frames:
-        if frame.address in resolved:
-            frame.symbol = resolved[frame.address]
+        if frame.atos_address in resolved:
+            frame.symbol = resolved[frame.atos_address]
 
     return notes
 
@@ -344,7 +367,7 @@ def main() -> int:
     try:
         report = load_report(args.report)
         images = parse_binary_images(report)
-        frames = parse_frames(report, images, args.thread_index)
+        frames = parse_frames(report, images, args.thread_index, args.arch)
         mapping = build_symbol_mapping(args, report)
         notes = symbolicate_frames(frames, mapping, args.arch)
         output = build_output(report, frames, notes, args.show_registers)
