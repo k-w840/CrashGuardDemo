@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <string>
 
 #ifdef __APPLE__
 static uintptr_t firstCmdAfterHeader(const struct mach_header *const header) {
@@ -79,6 +80,32 @@ static void parseMachHeader(const struct mach_header *header, intptr_t slide, ZW
             break;
     }
 }
+
+// 后两段路径
+static std::string lastTwoPathComponents(const char *path) {
+    if (path == nullptr) {
+        return "";
+    }
+
+    std::string fullPath(path);
+    const size_t lastSlash = fullPath.find_last_of('/');
+    // 没有 / 使用全路径
+    if (lastSlash == std::string::npos) {
+        return fullPath;
+    }
+    // 只有一个 / 在起始位置，返回去掉 / 的字符
+    if (lastSlash == 0) {
+        return fullPath.substr(1);
+    }
+    // 从开始检索到最后一个/前，找第二个斜杠
+    const size_t previousSlash = fullPath.find_last_of('/', lastSlash - 1);
+    // 只有一个斜杠，使用全路径
+    if (previousSlash == std::string::npos) {
+        return fullPath;
+    }
+
+    return fullPath.substr(previousSlash + 1);
+}
 #endif
 
 void zwMobileGuardRefreshBinaryImages(void) {
@@ -97,7 +124,9 @@ void zwMobileGuardRefreshBinaryImages(void) {
         // 设置基地址、大小、uuid等信息
         parseMachHeader(_dyld_get_image_header(i), _dyld_get_image_vmaddr_slide(i), image);
         const char *path = _dyld_get_image_name(i);
-        snprintf(image->path, sizeof(image->path), "%s", path ? path : "");
+        // 截取后两段为路径
+        const std::string shortPath = lastTwoPathComponents(path);
+        snprintf(image->path, sizeof(image->path), "%s", shortPath.c_str());
         // 从后向前查找/,路径中最后一个是名字
         const char *last = strrchr(path, '/');
         snprintf(image->name, sizeof(image->name), "%s", last ? last + 1 : path);

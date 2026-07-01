@@ -64,7 +64,7 @@ struct ZWRawBinaryImage {
     uint64_t size;
     char uuid[64];// UUID，匹配 dSYM 符号表的标识符
     char name[128];// 名称（如 studyGL）
-    char path[512];// 绝对路径
+    char path[512];// 路径后两级
     char arch[32];// 架构，例如 arm64 / x86_64
 };
 
