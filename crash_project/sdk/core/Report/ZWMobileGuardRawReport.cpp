@@ -187,7 +187,7 @@ void zwMobileGuardWriteReportInternal(int crashType, int sig, siginfo_t *sigInfo
 
     // 构建落盘的 JSON 文件路径
     char jsonCrashPath[768];
-    buildRawCrashFilePath(jsonCrashPath, sizeof(jsonCrashPath), report.header.crashTimestamp, report.appInfo.pid);
+    buildRawCrashFilePath(jsonCrashPath, sizeof(jsonCrashPath), report.header.crashTimestamp / 1000000ULL, report.appInfo.pid);
 
     // 序列化写入 JSON 文件
     zwMobileGuardWriteJSONReport(&report, jsonCrashPath);

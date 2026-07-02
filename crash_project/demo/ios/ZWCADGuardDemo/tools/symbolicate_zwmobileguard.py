@@ -95,6 +95,17 @@ def normalize_uuid(value: str) -> str:
     return (value or "").strip().upper()
 
 
+def parse_int_value(value: object, default: int = 0) -> int:
+    if value is None:
+        return default
+    if isinstance(value, str):
+        value = value.strip()
+        if not value:
+            return default
+        return int(value, 0)
+    return int(value)
+
+
 def parse_binary_images(report: dict) -> List[BinaryImage]:
     images = []
     raw_images = report.get("report", {}).get("binary_images", [])
@@ -103,8 +114,8 @@ def parse_binary_images(report: dict) -> List[BinaryImage]:
             BinaryImage(
                 name=str(item.get("name", "")),
                 path=str(item.get("path", "")),
-                base=int(item.get("image_addr", 0)),
-                size=int(item.get("image_size", 0)),
+                base=parse_int_value(item.get("image_addr")),
+                size=parse_int_value(item.get("image_size")),
                 uuid=normalize_uuid(str(item.get("uuid", ""))),
             )
         )
@@ -144,7 +155,7 @@ def parse_frames(report: dict, images: Sequence[BinaryImage], thread_index: int,
     contents = threads[thread_index].get("backtrace", {}).get("contents", [])
     frames = []
     for idx, item in enumerate(contents):
-        address = int(item.get("instruction_addr", 0))
+        address = parse_int_value(item.get("instruction_addr"))
         atos_address = address
         # signal 栈首帧通常就是 faulting PC，后续帧更接近“返回地址”，按 KSCrash 风格转成调用点更容易命中静态库内部符号。
         if not (error_type == "signal" and idx == 0):
@@ -307,6 +318,10 @@ def format_timestamp(report: dict) -> str:
         return str(value)
 
 
+def format_address(value: object) -> str:
+    return f"0x{parse_int_value(value):x}"
+
+
 def build_output(report: dict, frames: Sequence[Frame], notes: Sequence[str], show_registers: bool) -> str:
     lines: List[str] = []
     report_info = report.get("report", {}).get("report", {})
@@ -324,11 +339,12 @@ def build_output(report: dict, frames: Sequence[Frame], notes: Sequence[str], sh
         image_name = frame.image.name if frame.image else "<unknown>"
         image_path = frame.image.path if frame.image else ""
         symbol = frame.symbol or "<unresolved>"
+        address = format_address(frame.address)
         if image_path:
-            lines.append(f"{frame.index:02d}  {frame.address}  {image_name}  {symbol}")
+            lines.append(f"{frame.index:02d}  {address}  {image_name}  {symbol}")
             lines.append(f"    path: {image_path}")
         else:
-            lines.append(f"{frame.index:02d}  {frame.address}  {image_name}  {symbol}")
+            lines.append(f"{frame.index:02d}  {address}  {image_name}  {symbol}")
 
     if show_registers:
         thread = crash_info.get("threads", [{}])[0]
@@ -339,14 +355,14 @@ def build_output(report: dict, frames: Sequence[Frame], notes: Sequence[str], sh
         lines.append("Registers.basic:")
         for key in ("pc", "sp", "lr", "fp", "cpsr"):
             if key in basic:
-                lines.append(f"  {key}: {basic[key]}")
+                lines.append(f"  {key}: {format_address(basic[key])}")
         x_keys = sorted((key for key in basic.keys() if re.fullmatch(r"x\d+", key)), key=lambda item: int(item[1:]))
         for key in x_keys:
-            lines.append(f"  {key}: {basic[key]}")
+            lines.append(f"  {key}: {format_address(basic[key])}")
         lines.append("Registers.exception:")
         for key in ("esr", "far"):
             if key in exception:
-                lines.append(f"  {key}: {exception[key]}")
+                lines.append(f"  {key}: {format_address(exception[key])}")
 
     if notes:
         lines.append("")

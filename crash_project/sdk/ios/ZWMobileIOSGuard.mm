@@ -1,6 +1,8 @@
 #import "ZWMobileIOSGuard.h"
 #include "ZWMobileGuard.h"
 #import <UIKit/UIKit.h>
+// 中望接入时直接使用现有工具类
+//#import "NSString+ZwDateString.h"
 #import <sys/utsname.h>
 
 extern "C" void zwMobileGuardRecordObjCCrash(const char* name, const char* reason, void** frames, int count);
@@ -143,56 +145,35 @@ static void zwMobileGuardUncaughtExceptionHandler(NSException *exception) {
     return content;
 }
 
-- (void)uploadCrashLogAtPath:(NSString *)logPath
-               uploadDrawing:(BOOL)uploadDrawing
-                  completion:(void (^)(BOOL success, NSString *message))completion {
-    // 读取日志内容
-    NSString *logContent = [self readCrashLogContentAtPath:logPath];
-    if ([logContent length] <= 0) {
-        if (completion) completion(NO, @"崩溃日志内容为空");
+- (void)uploadCrashReport {
+    NSError *error = nil;
+    NSArray<NSString *> *files = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:self.logDir error:&error];
+    if (error) {
+        NSLog(@"[ZWMobileIOSGuard] 获取崩溃存储路径失败:%@", error);
         return;
     }
-    
-//    __block NSString *drawingPath = nil;
-//    __block NSString *drawingName = nil;
-//    
-//    NSData *jsonData = [logContent dataUsingEncoding:NSUTF8StringEncoding];
-//    if (jsonData) {
-//        NSError *error = nil;
-//        NSDictionary *jsonDict = [NSJSONSerialization JSONObjectWithData:jsonData options:0 error:&error];
-//        if (!error && [jsonDict isKindOfClass:[NSDictionary class]]) {
-//            NSDictionary *activeDrawing = jsonDict[@"active_drawing"];
-//            if ([activeDrawing isKindOfClass:[NSDictionary class]]) {
-//                NSNumber *isActive = activeDrawing[@"is_active"];
-//                if (isActive && [isActive boolValue]) {
-//                    drawingPath = activeDrawing[@"path"];
-//                    drawingName = activeDrawing[@"name"];
-//                }
-//            }
-//        }
-//    }
-    
-    // 模拟网络请求延时 1.5 秒
-//    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-//        NSMutableString *resultMsg = [NSMutableString stringWithString:@"[模拟服务器上报成功]\n"];
-//        [resultMsg appendString:@"1. 崩溃元数据及面包屑 JSON 上传成功。\n"];
-//        
-//        if (drawingPath && [drawingPath length] > 0) {
-//            if (uploadDrawing) {
-//                // 用户授权同意，模拟上传图纸本体
-//                [resultMsg appendFormat:@"2. [用户授权已勾选] 图纸文件已成功上报: %@\n", drawingName];
-//            } else {
-//                // 用户未授权，严格遵照合规红线，只传元数据，不传图纸文件本体
-//                [resultMsg appendFormat:@"2. [安全合规限制] 拒绝自动上传图纸本体文件。仅上报该图纸的哈希指纹以作比对。\n"];
-//            }
-//        } else {
-//            [resultMsg appendString:@"2. 本次崩溃无关联图纸文件。\n"];
-//        }
-//        
-//        if (completion) {
-//            completion(YES, resultMsg);
-//        }
-//    });
+    __weak __typeof(self) weakSelf = self;
+    for (NSString *file in files) {
+        // 过滤以 crash_ 开头并以 .json 结尾的崩溃报告文件
+        if ([file hasPrefix:@"crash_"] && [file hasSuffix:@".json"]) {
+            // carsh 报告 文件名中时间戳转为固定格式时间
+            NSArray *pathArr = [file componentsSeparatedByString:@"_"];
+            if (pathArr.count != 3) {
+                continue;
+            }
+            // 中望接入直接使用现有工具类
+//            NSString *carshTime = [NSString dateStringWithTimestamp:[pathArr objectAtIndex:1] format:@"yyyy-MM-dd-HHmmss"];
+            NSString *carshTime = [[self class] dateStringWithTimestamp:[pathArr objectAtIndex:1] format:@"yyyy-MM-dd-HHmmss"];
+            NSString *uploadFileName = [NSString stringWithFormat:@"%@_%@_%@", [pathArr objectAtIndex:0], carshTime, [pathArr objectAtIndex:2]];
+            NSString *filePath = [self.logDir stringByAppendingPathComponent:file];
+            [[ZWApiService shareInstance] uploadCrashReport:[NSData dataWithContentsOfFile:filePath] fileName:uploadFileName callBack:^(id  _Nullable response, NSError * _Nullable error) {
+                // 上传成功后，清空本地数据
+                if (!error) {
+                    [weakSelf deleteCrashLogAtPath:filePath];
+                }
+            }];
+        }
+    }
 }
 
 - (BOOL)deleteCrashLogAtPath:(NSString *)path {
@@ -204,4 +185,24 @@ static void zwMobileGuardUncaughtExceptionHandler(NSException *exception) {
     return res;
 }
 
+// 中望接入该部分代码删除，用现有工具类 begig
++ (NSString *)dateStringWithTimestamp:(NSString *)timestampStr format:(NSString *)format {
+    if (timestampStr.length <= 0 || format.length <= 0) {
+        return @"";
+    }
+    NSTimeInterval timeInterval = [timestampStr doubleValue];
+    // √ä√ò¬¥√Å√ü√≠√Å‚à´√ü√ã¬∂√Ö√à√¥¬ß1000
+    if (timestampStr.length == 13) {
+        timeInterval = timeInterval / 1000.0;
+    }
+    NSDate *date = [NSDate dateWithTimeIntervalSince1970:timeInterval];
+    return [NSString getTimeStringWithFormat:format date:date];
+}
+
++ (NSString *)getTimeStringWithFormat:(NSString *)format date:(NSDate *)date {
+    NSDateFormatter *dateFormat = [[NSDateFormatter alloc] init];
+    [dateFormat setDateFormat:format];
+    return [dateFormat stringFromDate:date];
+}
+// 中望接入该部分代码删除，用现有工具类 end
 @end
