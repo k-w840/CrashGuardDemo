@@ -45,20 +45,6 @@ struct ZWMobileGuardFrameEntry {
     uintptr_t returnAddress;
 };
 
-static bool copyMemorySafely(const void* source, void* destination, size_t size) {
-    if (source == nullptr || destination == nullptr || size == 0) {
-        return false;
-    }
-
-    vm_size_t bytesCopied = 0;
-    kern_return_t result = vm_read_overwrite(mach_task_self(),
-                                             (vm_address_t)source,
-                                             (vm_size_t)size,
-                                             (vm_address_t)destination,
-                                             &bytesCopied);
-    return result == KERN_SUCCESS && bytesCopied == size;
-}
-
 // 从 signal 上下文中提取 machine context
 static _STRUCT_MCONTEXT* machineContextFromSignalContext(void* signalUserContext) {
     if (signalUserContext == nullptr) {
@@ -96,6 +82,23 @@ static uintptr_t callInstructionAddress(uintptr_t returnAddress) {
         return normalized;
     }
     return normalized - 1;
+}
+
+static void appendUniqueBacktraceFrame(void** buffer, int* frameCount, int maxFrames, uintptr_t address) {
+    if (buffer == nullptr || frameCount == nullptr || *frameCount >= maxFrames || address <= 1) {
+        return;
+    }
+
+    uintptr_t normalizedAddress = callInstructionAddress(address);
+    if (normalizedAddress <= 1) {
+        return;
+    }
+
+    if (*frameCount > 0 && (uintptr_t)buffer[*frameCount - 1] == normalizedAddress) {
+        return;
+    }
+
+    buffer[(*frameCount)++] = (void*)normalizedAddress;
 }
 
 // 获取指令地址
@@ -207,9 +210,7 @@ extern "C" int zwMobileGuardCaptureSignalBacktrace(void* signalUserContext, void
     if (frameCount < maxFrames) {
         // 获取链接地址（上一级调用者的返回地址，函数返回后要回去的位置，如 a 调用 b，即为 b 返回到 a 的指令地址）
         uintptr_t linkRegister = linkRegisterFromMachineContext(machineContext);
-        if (linkRegister > 1) {
-            buffer[frameCount++] = (void*)callInstructionAddress(linkRegister);
-        }
+        appendUniqueBacktraceFrame(buffer, &frameCount, maxFrames, linkRegister);
     }
 
     // 获取 fp/rbp 栈帧指针地址，回朔调用链路
@@ -223,18 +224,13 @@ extern "C" int zwMobileGuardCaptureSignalBacktrace(void* signalUserContext, void
             break;
         }
 
-        ZWMobileGuardFrameEntry currentFrame;
-        if (!copyMemorySafely(frame, &currentFrame, sizeof(currentFrame))) {
-            break;
-        }
+        ZWMobileGuardFrameEntry currentFrame = *frame;
         // 地址错误 || 上一个栈帧为自己，结束循环
         if (currentFrame.returnAddress == 0 || currentFrame.previous == frame) {
             break;
         }
         // 参照 kscrash 过滤明显无效地址
-        if (currentFrame.returnAddress > 1) {
-            buffer[frameCount++] = (void*)callInstructionAddress(currentFrame.returnAddress);
-        }
+        appendUniqueBacktraceFrame(buffer, &frameCount, maxFrames, currentFrame.returnAddress);
         // 无上一栈帧可结束过滤；栈是向低地址生长的，对不符合规律的过滤
         if (currentFrame.previous == nullptr || (uintptr_t)currentFrame.previous <= (uintptr_t)frame) {
             break;
