@@ -77,7 +77,6 @@ static void addCrashError(KSJSONEncodeContext *encoderContext, const ZWRawCrashR
     if (report->header.crashType == ZWRawCrashTypeCPP) {
         ksjson_addStringElement(encoderContext, "type", "cpp_exception", KSJSON_SIZE_AUTOMATIC);
         ksjson_beginObject(encoderContext, "cpp_exception");
-        ksjson_addStringElement(encoderContext, "class", report->exceptionClass, KSJSON_SIZE_AUTOMATIC);
         ksjson_addStringElement(encoderContext, "name", report->exceptionClass, KSJSON_SIZE_AUTOMATIC);
         ksjson_addStringElement(encoderContext, "reason", report->exceptionReason, KSJSON_SIZE_AUTOMATIC);
         ksjson_endContainer(encoderContext);
