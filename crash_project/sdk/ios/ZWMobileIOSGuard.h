@@ -63,20 +63,7 @@
  */
 - (NSString *)readCrashLogContentAtPath:(NSString *)path;
 
-/**
- * 模拟上传崩溃日志与图纸本体
- * 
- * @param logPath 崩溃日志路径
- * @param uploadDrawing 是否随同上传图纸本体
- * @param completion 模拟上传完成回调 (success=是否成功, message=状态描述)
- */
-- (void)uploadCrashLogAtPath:(NSString *)logPath
-               uploadDrawing:(BOOL)uploadDrawing
-                  completion:(void (^)(BOOL success, NSString *message))completion;
-
-/**
- * 删除本地崩溃日志文件
- */
-- (BOOL)deleteCrashLogAtPath:(NSString *)path;
+// 上传崩溃日志
+- (void)uploadCrashReport;
 
 @end
